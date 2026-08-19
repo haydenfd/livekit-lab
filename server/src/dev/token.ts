@@ -1,6 +1,6 @@
 import { AccessToken, type VideoGrant } from 'livekit-server-sdk';
 import { TrackSource } from '@livekit/protocol';
-import { loadLiveKitConfig } from '../config/livekit.js';
+import { loadLiveKitConfig } from '../config/livekit.ts';
 
 export interface ParticipantTokenOptions {
   /** Name of the LiveKit room to join. */

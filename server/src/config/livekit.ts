@@ -1,4 +1,11 @@
-import 'dotenv/config';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+
+// Always load the repo root .env (root/.env), no matter which directory
+// commands are executed from.
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+dotenv.config({ path: join(repoRoot, '.env') });
 
 export interface LiveKitConfig {
   /** WebSocket URL of the LiveKit server. */
