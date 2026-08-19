@@ -1,4 +1,9 @@
-import { useSession, SessionProvider } from '@livekit/components-react';
+import {
+  RoomAudioRenderer,
+  StartAudio,
+  useSession,
+  SessionProvider,
+} from '@livekit/components-react';
 import { AgentSessionView_01 } from '@/components/agents-ui/blocks/agent-session-view-01';
 import { Button } from '@/components/ui/button';
 import { roomName, tokenSource } from '@/livekit/session';
@@ -29,6 +34,12 @@ export function VoiceConsole() {
               Start Session
             </Button>
           </div>
+        )}
+        {session.isConnected && (
+          <>
+            <RoomAudioRenderer volume={1} />
+            <StartAudio label="Enable audio" />
+          </>
         )}
       </div>
     </SessionProvider>

@@ -1,5 +1,6 @@
 import { type JobContext, ServerOptions, cli, defineAgent } from '@livekit/agents';
 import { fileURLToPath } from 'node:url';
+import './config/livekit.ts';
 import { runRoomEntry } from './agent/room-entry.ts';
 
 export default defineAgent({
