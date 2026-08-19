@@ -9,6 +9,7 @@
     "start:server": "livekit-server --dev",
     "agent:dev": "lk agent dev --dev --no-reload src/agent.ts",
     "dev:token": "tsx src/dev/token.ts",
+    "token:dev": "tsx src/dev/token-server.ts",
     "build": "tsc"
   },
   "engines": {
