@@ -1,0 +1,27 @@
+{
+  "name": "livekit-lab-chennai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Minimal local LiveKit development lab",
+  "type": "module",
+  "scripts": {
+    "dev": "livekit-server --dev",
+    "start:server": "livekit-server --dev",
+    "agent:dev": "lk agent dev --dev --no-reload src/agent.ts",
+    "dev:token": "tsx src/dev/token.ts",
+    "build": "tsc"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@livekit/agents": "^1.6.4",
+    "dotenv": "^17.4.2",
+    "livekit-server-sdk": "^2.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
