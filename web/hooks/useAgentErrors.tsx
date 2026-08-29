@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { toast as sonnerToast } from 'sonner';
 import { useAgent, useSessionContext } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react';
@@ -27,6 +27,19 @@ function toastAlert(toast: ToastProps) {
 export function useAgentErrors() {
   const agent = useAgent();
   const { isConnected, end } = useSessionContext();
+  const hasSeenAgent = useRef(false);
+
+  useEffect(() => {
+    if (agent.identity) {
+      hasSeenAgent.current = true;
+      return;
+    }
+
+    if (isConnected && hasSeenAgent.current && agent.state !== 'failed') {
+      hasSeenAgent.current = false;
+      void end();
+    }
+  }, [agent.identity, agent.state, isConnected, end]);
 
   useEffect(() => {
     if (isConnected && agent.state === 'failed') {
