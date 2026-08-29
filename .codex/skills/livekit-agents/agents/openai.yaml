@@ -1,0 +1,7 @@
+interface:
+  display_name: "LiveKit Agents"
+  short_description: "Build tested LiveKit voice agents"
+  default_prompt: "Use $livekit-agents to build or modify a tested LiveKit voice agent."
+
+policy:
+  allow_implicit_invocation: true
