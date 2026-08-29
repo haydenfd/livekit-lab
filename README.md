@@ -55,3 +55,23 @@ Console mode does not require a LiveKit server. The browser UI does, because bro
 ## LiveKit Cloud later
 
 Replace the local LiveKit values with a Cloud project’s values, authenticate with `lk cloud auth`, and run the agent in `dev` mode. The same web UI can then connect to Cloud instead of the local server.
+
+
+## Notes
+
+### Room creation
+
+- Browser clicks start() interview, which triggers a POST /api/token. useSession(..., { agentName: "my-agent" }) supplies agent dispatch config
+- Generates a 15-minute signed join token and a unique name
+- Browser connects to ws://127.0.0.1:7880 with that token. 
+
+
+### Agent Session
+
+- Main orchestrator for app
+- Handles entire voice pipeline and emits events for observability and control
+
+### Agent
+
+- What AgentSession orchestrates
+- Defines instructions, tools of app. Framework supports design of custom workflows to orchestrate handoffs, delegation
