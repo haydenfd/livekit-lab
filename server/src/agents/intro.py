@@ -19,7 +19,7 @@ class IntroAgent(Agent):
         await self.session.say("Hey, let's begin when you're ready.")
 
     @function_tool()
-    async def move_to_discussion(self, context: RunContext) -> DiscussionAgent:
+    async def move_to_discussion(self, context: RunContext[None]) -> DiscussionAgent:
         """Move to discussion after the candidate clearly indicates readiness."""
         return DiscussionAgent(
             chat_ctx=self.chat_ctx.copy(exclude_instructions=True),

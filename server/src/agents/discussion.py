@@ -19,7 +19,7 @@ class DiscussionAgent(Agent):
         await self.session.say("How are you doing today?")
 
     @function_tool()
-    async def finish_discussion(self, context: RunContext) -> ConclusionAgent:
+    async def finish_discussion(self, context: RunContext[None]) -> ConclusionAgent:
         """Finish after the candidate gives their first substantive response."""
         return ConclusionAgent(
             chat_ctx=self.chat_ctx.copy(exclude_instructions=True),
