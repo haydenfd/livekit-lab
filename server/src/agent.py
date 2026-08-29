@@ -5,7 +5,7 @@ import logging
 from livekit.agents import AgentServer, JobContext, cli
 
 from agent_session import create_agent_session
-from agents.assistant import Assistant
+from agents.intro import IntroAgent
 from audio import create_room_options
 from config.env import load_environment
 
@@ -24,7 +24,7 @@ async def my_agent(ctx: JobContext):
     agent_session = create_agent_session()
 
     await agent_session.start(
-        agent=Assistant(),
+        agent=IntroAgent(),
         room=ctx.room,
         room_options=create_room_options(),
     )
