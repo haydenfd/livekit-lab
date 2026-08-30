@@ -8,6 +8,7 @@ from agent_session import create_agent_session
 from agents.intro import IntroAgent
 from audio import create_room_options
 from config.env import load_environment
+from services.transcription_service import TranscriptionService
 
 logger = logging.getLogger("agent")
 
@@ -22,6 +23,7 @@ async def my_agent(ctx: JobContext):
     }
 
     agent_session = create_agent_session()
+    TranscriptionService().register(ctx, agent_session)
 
     await agent_session.start(
         agent=IntroAgent(),

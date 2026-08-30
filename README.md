@@ -81,3 +81,14 @@ When the candidate finishes a turn, the agent's STT produces a final text segmen
 In this app, `web/components/agents-ui/blocks/agent-session-view-01/components/agent-session-block.tsx` calls `useSessionMessages(session)`. It passes the returned `messages` to `web/components/agents-ui/agent-chat-transcript.tsx`, which renders each message as a user or agent bubble. `AgentSessionProvider` supplies the LiveKit session context, so no custom transcript WebSocket, polling loop, or database lookup is needed.
 
 This is LiveKit's current text-stream path for transcriptions. The older `TranscriptionReceived` event and `publish_transcription()` path are deprecated. See [Text and transcriptions](https://docs.livekit.io/agents/multimodality/text/) and [LiveKit chat components](https://docs.livekit.io/frontends/agents-ui/chat/) for the underlying behavior.
+
+## Session history and transcript logging
+
+`session.history` is broader than a spoken transcript: it can include system and developer instructions, tool calls and results, handoffs, configuration updates, and other internal records. `TranscriptionService` intentionally writes only non-empty spoken `user` and `assistant` messages after the LiveKit session has fully closed.
+
+Each finished session produces one JSON file named `session_<next-number>_<MMDDYYYY>.json`. The sequence is shared by all files in the log directory and continues across process restarts.
+
+- Local agent: `server/logs/`
+- Docker container: `/app/logs/`
+
+Docker container files disappear when the container is replaced unless `/app/logs/` is mounted to durable storage. For a local bind mount, use `-v "$(pwd)/server/logs:/app/logs"` when starting the container.
