@@ -84,7 +84,62 @@ This is LiveKit's current text-stream path for transcriptions. The older `Transc
 
 ## Session history and transcript logging
 
-`session.history` is broader than a spoken transcript: it can include system and developer instructions, tool calls and results, handoffs, configuration updates, and other internal records. `TranscriptionService` intentionally writes only non-empty spoken `user` and `assistant` messages after the LiveKit session has fully closed.
+`session.history` is a LiveKit `ChatContext`. Its canonical, ordered data is `session.history.items`, not a list of transcript strings. The items can include messages, tool calls and outputs, agent handoffs, and agent configuration changes. See [LiveKit Chat context documentation](https://docs.livekit.io/agents/logic/chat-context/).
+
+Representative `session.history.to_dict(exclude_timestamp=False)` data looks like this (optional fields are shown only where useful):
+
+```json
+{
+  "items": [
+    {
+      "id": "item_user_1",
+      "type": "message",
+      "role": "user",
+      "content": ["What is the weather?"],
+      "interrupted": false,
+      "created_at": 1700000000.0
+    },
+    {
+      "id": "item_call_1",
+      "type": "function_call",
+      "call_id": "call_weather_1",
+      "name": "get_weather",
+      "arguments": "{\"city\": \"San Francisco\"}",
+      "created_at": 1700000001.0
+    },
+    {
+      "id": "item_output_1",
+      "type": "function_call_output",
+      "call_id": "call_weather_1",
+      "name": "get_weather",
+      "output": "Sunny, 18 C",
+      "is_error": false,
+      "created_at": 1700000002.0
+    },
+    {
+      "id": "item_handoff_1",
+      "type": "agent_handoff",
+      "old_agent_id": "intake",
+      "new_agent_id": "weather",
+      "created_at": 1700000003.0
+    },
+    {
+      "id": "item_config_1",
+      "type": "agent_config_update",
+      "instructions": "Answer weather questions concisely.",
+      "tools_added": ["get_weather"],
+      "tools_removed": [],
+      "created_at": 1700000004.0
+    }
+  ]
+}
+```
+
+- A `message` has `id`, `type`, `role`, `content`, `interrupted`, `metrics`, `extra`, and Unix-second `created_at`; `transcript_confidence` is optional. `content` can contain text and non-text content such as images. A message item's `text_content` property derives readable text from its `content` (joining text parts); it is not a serialized item field.
+- A `function_call` has `id`, `type`, `call_id`, `name`, `arguments`, `created_at`, `extra`, and optional `group_id`. Its matching `function_call_output` has `id`, `type`, `call_id`, `name`, `output`, `is_error`, and `created_at`.
+- An `agent_handoff` has `id`, `type`, optional `old_agent_id`, `new_agent_id`, and `created_at`. An `agent_config_update` has `id`, `type`, optional `instructions`, `tools_added`, `tools_removed`, and `created_at`.
+
+This app's saved JSON is deliberately narrower than `session.history`: after the LiveKit session fully closes, `TranscriptionService` keeps only non-empty `user` and `assistant` `message` items. Each saved transcript entry contains `id`, `role`, `text` (from `text_content`), ISO-8601 `timestamp`, `interrupted`, and optional `transcript_confidence`.
 
 Each finished session produces one JSON file named `session_<next-number>_<MMDDYYYY>.json`. The sequence is shared by all files in the log directory and continues across process restarts.
 
