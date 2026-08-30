@@ -42,6 +42,24 @@ Console mode does not require a LiveKit server. The browser UI does, because bro
 
 Replace the local LiveKit values with a Cloud project’s values, authenticate with `lk cloud auth`, and run the agent in `dev` mode. The same web UI can then connect to Cloud instead of the local server.
 
+## Interview session metadata
+
+The web token route currently dispatches each configured agent with
+`{"programmingLanguage":"python"}`. The metadata is session-scoped and reaches
+every agent stage through this flow:
+
+```text
+future Supabase preferences
+  -> token/session creation
+  -> RoomAgentDispatch.metadata
+  -> ctx.job.metadata
+  -> AgentSession.userdata (InterviewContext)
+  -> all graph stages and handoffs
+```
+
+`InterviewContext.programming_language` accepts any string. Missing or malformed
+metadata is non-fatal and produces `None`; Supabase-backed creation can replace
+only the token-route origin later.
 
 ## Notes
 

@@ -41,6 +41,9 @@ export async function POST(req: Request) {
     const roomConfig = body?.room_config
       ? RoomConfiguration.fromJson(body.room_config, { ignoreUnknownFields: true })
       : new RoomConfiguration();
+    for (const dispatch of roomConfig.agents) {
+      dispatch.metadata = JSON.stringify({ programmingLanguage: 'python' });
+    }
 
     // Generate participant token
     const participantName = 'user';
