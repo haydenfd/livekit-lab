@@ -130,3 +130,14 @@ We mainly want to prove that a value originating at session startup can make its
 Keep the implementation minimal and consistent with the existing LiveKit architecture. Do not redesign the graph or build the future code-evaluation system as part of this.
 
 Also add a short README section explaining the path the programming language takes through the system, including that `python` is currently hardcoded only to mimic the future production flow from Supabase preferences into LiveKit session metadata and then into the interview context.
+
+
+# Problems I'm facing
+
+- Potential follow up questions to ask for each question and how to go about it. Like agent handoff for generating or what?
+- Logic around looping with follow ups, code submissions (should i just start with code finishes with follow ups, and then moves onto conclusion, or try looping back into coding for follow ups -- more complex)
+- Should user context show explanation for the problems too? or just testcase with solution for (1 or 2 cases) and images (from leetcode)
+- How should it work with evaluating approaches? One agent (luna 5.6 for llm that can do this?). Like the boundary around brute forcing. Sometimes if users first suggestion is brute force but brute force is very unreasonable approach, it might not say that this approach should be acceptable and instead force user to think of a cleaner approach. Or sometimes brute force is the first natural approach and one that can be used for the initial case, but then the user needs to implement it and then follow up for optimizations will be most important (so coding follow up loop). Sometimes, brute force is the only way so it should be acceptable from the get go. Users might not always give the most optimal approach, but you see why this is important now? thats kinda what im getting at in terms of what to explore.
+- sometimes when the user is talking, they might be talking in full proper loops where the thought will be end of turn evaluated or like a prper answer. but the problem is, sometimes the bot shouldnt necessarily be repeating or asking for follow ups. maybe not even respond at all, but i dont know if this is a prompting specific thing, or maybe just say mhmm etc
+- Speed of bot talking
+- Problem structure (Images, examples, testcases) -> static assets, explanation(s), what about def for DS

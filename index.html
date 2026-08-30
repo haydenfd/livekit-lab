@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AlgoVox · Bot Data Flow</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230c2530'/%3E%3Cpath d='M18 31h28M32 17v28' stroke='%23e4ae55' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='31' r='9' fill='%231d8a87'/%3E%3C/svg%3E" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fira+Code:wght@400;500;600&display=swap');
+    :root { --bg:#f5f2ea; --surface:#fffdf8; --surface2:#ece7db; --border:#d7cfc0; --text:#17333a; --dim:#617477; --teal:#167c79; --teal-dim:#d9edeb; --gold:#b26c16; --gold-dim:#f8ead2; --rose:#b84b4a; --rose-dim:#f8e1df; --ink:#0c2530; --font:'DM Sans',sans-serif; --mono:'Fira Code',monospace; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#0b2028; --surface:#112c35; --surface2:#173842; --border:#31505a; --text:#eaf2ed; --dim:#abc0bc; --teal:#63c6be; --teal-dim:#153f42; --gold:#edbd6a; --gold-dim:#46341c; --rose:#ee8e88; --rose-dim:#492a2d; --ink:#dcebe4; } }
+    * { box-sizing:border-box; } html { scroll-behavior:smooth; } body { margin:0; min-width:320px; color:var(--text); font-family:var(--font); background-color:var(--bg); background-image:radial-gradient(var(--border) .7px,transparent .7px); background-size:17px 17px; line-height:1.55; }
+    .wrap { max-width:1440px; margin:0 auto; padding:30px 34px 72px; display:grid; grid-template-columns:185px minmax(0,1fr); gap:38px; }
+    .toc { position:sticky; top:26px; align-self:start; border-left:1px solid var(--border); padding:10px 0 10px 13px; } .toc b { display:block; margin-bottom:8px; font:600 10px var(--mono); color:var(--dim); text-transform:uppercase; letter-spacing:.12em; } .toc a { display:block; padding:6px 8px; color:var(--dim); text-decoration:none; border-left:2px solid transparent; font-size:12px; } .toc a:hover,.toc a.active { color:var(--text); border-color:var(--teal); background:color-mix(in srgb,var(--surface) 75%,transparent); }
+    .main { min-width:0; } .eyebrow { margin:0 0 10px; font:600 11px var(--mono); letter-spacing:.1em; color:var(--teal); text-transform:uppercase; } h1 { max-width:760px; margin:0; font-size:clamp(32px,5vw,58px); line-height:.98; letter-spacing:-.055em; } .lede { max-width:810px; color:var(--dim); font-size:17px; margin:20px 0 25px; } .status { display:flex; gap:9px; align-items:center; width:max-content; max-width:100%; padding:8px 11px; border:1px solid var(--border); background:var(--surface); border-radius:6px; font:12px var(--mono); } .status i { width:9px; height:9px; border-radius:50%; background:var(--teal); } code { color:var(--teal); font:500 .9em var(--mono); }
+    .section { scroll-margin-top:25px; margin-top:52px; } .section-head { display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:18px; } .section-num { color:var(--gold); font:600 11px var(--mono); } h2 { margin:0; font-size:21px; letter-spacing:-.025em; } .section-note { margin:0 0 17px; max-width:800px; color:var(--dim); font-size:14px; }
+    .diagram-shell { position:relative; } .diagram-hint { margin:0 0 7px; font:11px var(--mono); color:var(--dim); } .mermaid-wrap { position:relative; min-height:420px; overflow:hidden; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 5px 16px #243b4011; } .mermaid-viewport { position:absolute; inset:0; overflow:hidden; cursor:grab; } .mermaid-viewport.dragging { cursor:grabbing; user-select:none; } .mermaid-canvas { position:absolute; transform-origin:0 0; } .zoom-controls { position:absolute; z-index:3; top:10px; right:10px; display:flex; align-items:center; gap:3px; padding:3px; background:var(--surface); border:1px solid var(--border); border-radius:6px; box-shadow:0 2px 7px #0001; } .zoom-controls button { width:28px; height:28px; padding:0; background:transparent; border:0; border-radius:4px; cursor:pointer; color:var(--text); font:16px var(--mono); } .zoom-controls button:hover { background:var(--surface2); } .zoom-label { padding:0 5px; color:var(--dim); font:10px var(--mono); white-space:nowrap; }
+    .legend { display:flex; gap:15px; flex-wrap:wrap; margin:12px 0 0; color:var(--dim); font:11px var(--mono); } .legend span { display:inline-flex; align-items:center; gap:6px; } .legend i { width:9px; height:9px; border-radius:50%; background:var(--teal); } .legend .gold { background:var(--gold); } .legend .rose { background:var(--rose); }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; } .ve-card { min-width:0; background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:17px; } .ve-card--teal { border-top:3px solid var(--teal); } .ve-card--gold { border-top:3px solid var(--gold); } .ve-card--rose { border-top:3px solid var(--rose); } .ve-label { display:block; margin-bottom:8px; color:var(--dim); font:600 10px var(--mono); letter-spacing:.08em; text-transform:uppercase; } h3 { font-size:16px; margin:0 0 7px; } .ve-card p { margin:0; color:var(--dim); font-size:13px; } .facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .fact { padding:14px 16px; background:var(--surface2); border-left:3px solid var(--gold); border-radius:0 7px 7px 0; } .fact b { display:block; font:600 11px var(--mono); color:var(--gold); margin-bottom:4px; } .fact span { font-size:13px; color:var(--dim); }
+    .flow-list { margin:0; padding-left:19px; color:var(--dim); font-size:13px; } .flow-list li { margin:6px 0; } details { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0 15px; } summary { cursor:pointer; padding:13px 0; font:600 13px var(--mono); color:var(--text); } details p { color:var(--dim); font-size:13px; margin:0 0 14px; }
+    @media (max-width:900px) { .wrap { grid-template-columns:1fr; padding:20px 18px 52px; gap:0; } .toc { z-index:5; position:sticky; top:0; display:flex; gap:3px; overflow:auto; margin:0 -18px 20px; padding:9px 18px; border:0; border-bottom:1px solid var(--border); background:var(--bg); } .toc b { display:none; } .toc a { white-space:nowrap; border-left:0; border-bottom:2px solid transparent; } .toc a.active { border-color:var(--teal); } .grid { grid-template-columns:1fr; } .facts { grid-template-columns:1fr; } } @media (max-width:560px) { .mermaid-wrap { min-height:360px; } .zoom-controls { top:auto; bottom:8px; } .lede { font-size:15px; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } * { transition:none !important; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="toc" id="toc"><b>Current bot map</b><a href="#overview">Overview</a><a href="#voice">Voice turn</a><a href="#stages">Stage nodes</a><a href="#recording">Session close</a><a href="#boundaries">Boundaries</a></nav>
+    <main class="main">
+      <header id="overview">
+        <p class="eyebrow">AlgoVox / current implementation</p>
+        <h1>The bot is one session with three focused agent nodes.</h1>
+        <p class="lede">A LiveKit room carries audio in both directions. The shared <code>AgentSession</code> runs speech recognition, the LLM, speech synthesis, interruption handling, and one durable history. Each stage swaps only the active agent and its narrow prompt.</p>
+        <div class="status"><i></i> Mapped from <code>server/src/</code> · not the future architecture proposal</div>
+      </header>
+
+      <section class="section" aria-labelledby="overview-title"><div class="section-head"><span class="section-num">01</span><h2 id="overview-title">Runtime topology</h2></div><p class="section-note">Thick arrows are the live media/conversation path. Dotted arrows are setup or shutdown work. The source inventory at the end names every file represented here; use the controls to inspect the diagram.</p>
+        <div class="diagram-shell"><p class="diagram-hint">Drag to pan · Ctrl/Cmd + scroll to zoom · ⛶ opens the diagram alone</p><div class="mermaid-wrap"><div class="zoom-controls"><button data-action="in" title="Zoom in">+</button><button data-action="out" title="Zoom out">−</button><button data-action="fit" title="Fit diagram">↺</button><button data-action="expand" title="Open full size">⛶</button><span class="zoom-label">Loading</span></div><div class="mermaid-viewport"><div class="mermaid-canvas"></div></div></div><script type="text/plain" class="diagram-source">flowchart TD
+  browser["Candidate browser<br/>microphone + speaker"]
+  room["LiveKit room<br/>WebRTC media + text streams"]
+  job["AgentServer job<br/>agent.py · my-agent"]
+  meta["Dispatch metadata<br/>programmingLanguage"]
+  context["InterviewContext<br/>AgentSession.userdata"]
+  session["AgentSession<br/>one interview lifecycle"]
+  stages["Active agent stage<br/>Intro → Discussion → Conclusion"]
+  providers["Deepgram STT / TTS<br/>Groq LLM"]
+  logs["server/logs/<br/>filtered transcript JSON"]
+  browser ==> room ==> job ==> session ==> stages
+  meta -. parsed into .-> context -. attached to .-> session
+  session <==> providers
+  stages ==> session
+  session -. shutdown callback .-> logs
+  classDef runtime fill:#d9edeb,stroke:#167c79,stroke-width:2px;
+  classDef edge fill:#f8ead2,stroke:#b26c16,stroke-width:1.5px;
+  classDef storage fill:#f8e1df,stroke:#b84b4a,stroke-width:1.5px;
+  class browser,room,job,session,stages,providers runtime;
+  class meta,context edge;
+  class logs storage;</script></div>
+        <div class="legend"><span><i></i> live media / conversation</span><span><i class="gold"></i> session setup data</span><span><i class="rose"></i> persisted after shutdown</span></div>
+      </section>
+
+      <section class="section" id="voice"><div class="section-head"><span class="section-num">02</span><h2>One candidate voice turn</h2></div><p class="section-note">This loop repeats while the session is alive. Turn detection decides when a pause becomes a completed candidate turn; interruption behavior is adaptive.</p>
+        <div class="diagram-shell"><p class="diagram-hint">The same room carries live audio and transcription text back to the browser.</p><div class="mermaid-wrap"><div class="zoom-controls"><button data-action="in" title="Zoom in">+</button><button data-action="out" title="Zoom out">−</button><button data-action="fit" title="Fit diagram">↺</button><button data-action="expand" title="Open full size">⛶</button><span class="zoom-label">Loading</span></div><div class="mermaid-viewport"><div class="mermaid-canvas"></div></div></div><script type="text/plain" class="diagram-source">sequenceDiagram
+  participant C as Candidate
+  participant R as LiveKit room
+  participant A as AgentSession
+  participant S as Deepgram STT
+  participant L as Groq LLM
+  participant T as Deepgram TTS
+  C->>R: Speak audio
+  R->>A: Audio track
+  A->>A: ai-coustics noise enhancement
+  A->>S: Enhanced audio
+  S-->>A: Transcript
+  A->>A: Turn detector marks a completed turn
+  A->>L: Active agent instructions plus chat context
+  L-->>A: Reply and possible handoff tool call
+  A->>T: Reply text
+  T-->>A: Synthesized audio
+  A->>R: Agent audio plus transcription text stream
+  R-->>C: Hear reply and see transcript</script></div>
+      </section>
+
+      <section class="section" id="stages"><div class="section-head"><span class="section-num">03</span><h2>Agent nodes: the interview graph</h2></div><p class="section-note">Only one node is active at a time. A function tool returning the next agent is the graph edge. Handoffs keep the conversation but strip the old stage instructions from the new agent’s LLM context.</p>
+        <div class="diagram-shell"><p class="diagram-hint">This is the entire current stage graph—there are no coding or follow-up nodes in the running bot yet.</p><div class="mermaid-wrap"><div class="zoom-controls"><button data-action="in" title="Zoom in">+</button><button data-action="out" title="Zoom out">−</button><button data-action="fit" title="Fit diagram">↺</button><button data-action="expand" title="Open full size">⛶</button><span class="zoom-label">Loading</span></div><div class="mermaid-viewport"><div class="mermaid-canvas"></div></div></div><script type="text/plain" class="diagram-source">flowchart TD
+  intro["IntroAgent<br/>says: begin when ready"]
+  ready{"Candidate clearly<br/>indicates readiness?"}
+  move["move_to_discussion()<br/>function tool"]
+  discussion["DiscussionAgent<br/>introduces First Bad Version<br/>and permits one substantive turn"]
+  finish["finish_discussion()<br/>function tool"]
+  conclusion["ConclusionAgent<br/>speaks final line"]
+  shutdown["session.shutdown()"]
+  intro --> ready
+  ready -->|yes| move --> discussion
+  ready -. keep listening .-> intro
+  discussion --> finish --> conclusion --> shutdown
+  classDef agent fill:#d9edeb,stroke:#167c79,stroke-width:2px;
+  classDef tool fill:#f8ead2,stroke:#b26c16,stroke-width:1.5px;
+  classDef stop fill:#f8e1df,stroke:#b84b4a,stroke-width:1.5px;
+  class intro,discussion,conclusion agent;
+  class move,finish,ready tool;
+  class shutdown stop;</script></div>
+        <div class="grid" style="margin-top:14px"><article class="ve-card ve-card--teal"><span class="ve-label">Node 1 · server/src/agents/intro.py</span><h3>IntroAgent</h3><p>Waits for readiness. Its only transition tool creates <code>DiscussionAgent</code> with copied conversation context.</p></article><article class="ve-card ve-card--gold"><span class="ve-label">Node 2 · server/src/agents/discussion.py</span><h3>DiscussionAgent</h3><p>Generates a short spoken question setup. One substantive candidate turn leads to the conclusion tool.</p></article><article class="ve-card ve-card--rose"><span class="ve-label">Node 3 · server/src/agents/conclusion.py</span><h3>ConclusionAgent</h3><p>Speaks a non-interruptible closing line, then directly shuts down the shared session.</p></article></div>
+      </section>
+
+      <section class="section" id="recording"><div class="section-head"><span class="section-num">04</span><h2>What survives the session</h2></div><p class="section-note">The in-memory history is broad; the on-disk transcript is deliberately narrow and written only after the session fully closes.</p><div class="facts"><div class="fact"><b>session.history</b><span>Canonical ordered LiveKit history: messages, tool calls, handoffs, and configuration updates.</span></div><div class="fact"><b>server/logs/session_N_MMDDYYYY.json</b><span>Filtered user and assistant spoken messages only—text, timestamp, interruption flag, and optional confidence.</span></div></div>
+        <div class="diagram-shell" style="margin-top:16px"><div class="mermaid-wrap"><div class="zoom-controls"><button data-action="in" title="Zoom in">+</button><button data-action="out" title="Zoom out">−</button><button data-action="fit" title="Fit diagram">↺</button><button data-action="expand" title="Open full size">⛶</button><span class="zoom-label">Loading</span></div><div class="mermaid-viewport"><div class="mermaid-canvas"></div></div></div><script type="text/plain" class="diagram-source">flowchart TD
+  close["AgentSession closes"] --> callback["JobContext shutdown callback"]
+  callback --> report["make_session_report(session)"]
+  callback --> history["session.history.items"]
+  report --> filter["TranscriptionService.persist()"]
+  history --> filter
+  filter --> keep["Keep non-empty user / assistant messages"]
+  keep --> file["Write new JSON file with exclusive create"]
+  classDef action fill:#d9edeb,stroke:#167c79,stroke-width:2px;
+  classDef filter fill:#f8ead2,stroke:#b26c16,stroke-width:1.5px;
+  classDef output fill:#f8e1df,stroke:#b84b4a,stroke-width:1.5px;
+  class close,callback,report,history action;
+  class filter,keep filter;
+  class file output;</script></div>
+      </section>
+
+      <section class="section" id="boundaries"><div class="section-head"><span class="section-num">05</span><h2>Useful boundaries</h2></div><div class="grid"><article class="ve-card ve-card--teal"><span class="ve-label">Shared across all nodes</span><h3>AgentSession</h3><ul class="flow-list"><li>STT: Deepgram Nova-3</li><li>LLM: Groq GPT-OSS 120B</li><li>TTS: Deepgram Aura-2 Asteria</li><li>History and turn handling</li></ul></article><article class="ve-card ve-card--gold"><span class="ve-label">Unique to each node</span><h3>Agent instructions + tools</h3><ul class="flow-list"><li>Stage-specific prompt</li><li>Only its valid handoff tool</li><li>Copied chat context, without old instructions</li></ul></article><article class="ve-card ve-card--rose"><span class="ve-label">Not part of the live graph</span><h3>Future ideas stay separate</h3><p><code>architecture.md</code> describes planned Coding and Followup agents. They are intentionally not shown as current nodes here.</p></article></div>
+        <details style="margin-top:15px"><summary>Exact source files represented in this page</summary><p><code>server/src/agent.py</code>, <code>agent_session.py</code>, <code>audio.py</code>, <code>interview_context.py</code>, <code>config/agent_session_config.py</code>, <code>agents/*.py</code>, <code>agents/prompts/*.py</code>, and <code>services/transcription_service.py</code>.</p></details>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    mermaid.initialize({ startOnLoad:false, theme:'base', look:'classic', securityLevel:'strict', themeVariables:{ fontFamily:"DM Sans, sans-serif", fontSize:'16px', primaryColor:dark?'#153f42':'#d9edeb', primaryBorderColor:dark?'#63c6be':'#167c79', primaryTextColor:dark?'#eaf2ed':'#17333a', secondaryColor:dark?'#46341c':'#f8ead2', secondaryBorderColor:dark?'#edbd6a':'#b26c16', secondaryTextColor:dark?'#eaf2ed':'#17333a', tertiaryColor:dark?'#492a2d':'#f8e1df', tertiaryBorderColor:dark?'#ee8e88':'#b84b4a', tertiaryTextColor:dark?'#eaf2ed':'#17333a', lineColor:dark?'#abc0bc':'#617477', actorBkg:dark?'#153f42':'#d9edeb', actorBorder:dark?'#63c6be':'#167c79', actorTextColor:dark?'#eaf2ed':'#17333a', signalColor:dark?'#abc0bc':'#617477', signalTextColor:dark?'#eaf2ed':'#17333a' } });
+    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+    async function start(shell, index) { const wrap=shell.querySelector('.mermaid-wrap'), vp=shell.querySelector('.mermaid-viewport'), canvas=shell.querySelector('.mermaid-canvas'), src=shell.querySelector('.diagram-source').textContent.trim(), label=shell.querySelector('.zoom-label'); const {svg}=await mermaid.render('bot-flow-'+index,src); canvas.innerHTML=svg; const el=canvas.querySelector('svg'); el.style.display='block'; el.removeAttribute('width'); el.removeAttribute('height'); const vb=el.viewBox.baseVal; let zoom=1, x=0, y=0, drag=null;
+      function draw(){ const w=vb.width*zoom,h=vb.height*zoom; x=w<vp.clientWidth?(vp.clientWidth-w)/2:clamp(x,vp.clientWidth-w-24,24); y=h<vp.clientHeight?(vp.clientHeight-h)/2:clamp(y,vp.clientHeight-h-24,24); el.style.width=w+'px';el.style.height=h+'px';canvas.style.transform=`translate(${x}px,${y}px)`;label.textContent=Math.round(zoom*100)+'%'; }
+      function fit(){ zoom=Math.min((vp.clientWidth-56)/vb.width,(vp.clientHeight-56)/vb.height,1.2); x=(vp.clientWidth-vb.width*zoom)/2;y=(vp.clientHeight-vb.height*zoom)/2;draw(); } function around(f,cx,cy){const next=clamp(zoom*f,.18,3);const r=next/zoom;x=cx-r*(cx-x);y=cy-r*(cy-y);zoom=next;draw();}
+      wrap.querySelector('[data-action="in"]').onclick=()=>around(1.18,vp.clientWidth/2,vp.clientHeight/2);wrap.querySelector('[data-action="out"]').onclick=()=>around(.85,vp.clientWidth/2,vp.clientHeight/2);wrap.querySelector('[data-action="fit"]').onclick=fit;wrap.querySelector('[data-action="expand"]').onclick=()=>{const doc='<!doctype html><title>AlgoVox diagram</title><style>body{margin:0;padding:30px;background:'+getComputedStyle(document.documentElement).getPropertyValue('--bg')+'}svg{max-width:100%;height:auto}</style>'+el.outerHTML;open(URL.createObjectURL(new Blob([doc],{type:'text/html'})),'_blank')};
+      vp.addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const r=vp.getBoundingClientRect();around(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top)},{passive:false});vp.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:x,py:y};vp.classList.add('dragging');vp.setPointerCapture(e.pointerId)});vp.addEventListener('pointermove',e=>{if(!drag)return;x=drag.px+e.clientX-drag.x;y=drag.py+e.clientY-drag.y;draw()});vp.addEventListener('pointerup',()=>{drag=null;vp.classList.remove('dragging')});vp.ondblclick=fit;new ResizeObserver(fit).observe(vp);fit(); }
+    document.querySelectorAll('.diagram-shell').forEach((s,i)=>start(s,i).catch(err=>{s.querySelector('.zoom-label').textContent='Render error';console.error(err)}));
+    const links=[...document.querySelectorAll('.toc a')]; const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id))}}),{rootMargin:'-12% 0px -78% 0px'}); document.querySelectorAll('header[id], section[id]').forEach(e=>observer.observe(e));
+  </script>
+</body>
+</html>
