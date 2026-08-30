@@ -4,7 +4,46 @@ import pytest
 
 from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
-from agents.prompts.questions import FIRST_BAD_VERSION_QUESTION
+from agents.prompts.questions import RIGHT_SIDE_VIEW_QUESTION
+from interview_context import InterviewContext
+
+EXPECTED_RIGHT_SIDE_VIEW_QUESTION = """\
+Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
+
+Example 1:
+
+Input: root = [1,2,3,null,5,null,4]
+
+Output: [1,3,4]
+
+Explanation:
+
+Example 2:
+
+Input: root = [1,2,3,4,null,null,null,5]
+
+Output: [1,3,4,5]
+
+Explanation:
+
+Example 3:
+
+Input: root = [1,null,3]
+
+Output: [1,3]
+
+Example 4:
+
+Input: root = []
+
+Output: []
+
+Constraints:
+
+The number of nodes in the tree is in the range [0, 100].
+
+-100 <= Node.val <= 100
+"""
 
 
 class RecordingSession:
@@ -27,10 +66,11 @@ def attach_session(agent: object, session: RecordingSession) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
 
-def test_discussion_instructions_include_the_full_static_question() -> None:
+def test_discussion_instructions_include_the_verbatim_static_question() -> None:
     agent = DiscussionAgent()
 
-    assert FIRST_BAD_VERSION_QUESTION in agent.instructions
+    assert RIGHT_SIDE_VIEW_QUESTION == EXPECTED_RIGHT_SIDE_VIEW_QUESTION
+    assert EXPECTED_RIGHT_SIDE_VIEW_QUESTION in agent.instructions
 
 
 def test_discussion_accepts_an_injected_question() -> None:
@@ -39,23 +79,45 @@ def test_discussion_accepts_an_injected_question() -> None:
     agent = DiscussionAgent(question=question)
 
     assert question in agent.instructions
-    assert FIRST_BAD_VERSION_QUESTION not in agent.instructions
+    assert RIGHT_SIDE_VIEW_QUESTION not in agent.instructions
 
 
 @pytest.mark.asyncio
-async def test_discussion_setup_requests_a_concise_left_panel_summary() -> None:
+async def test_discussion_setup_confirms_session_language_then_allows_one_question() -> (
+    None
+):
     agent = DiscussionAgent()
     session = RecordingSession()
+    session.userdata = InterviewContext(programming_language="python")
     attach_session(agent, session)
 
     await agent.on_enter()
 
     assert len(session.generated_instructions) == 1
     setup = session.generated_instructions[0].lower()
-    assert "earliest bad version" in setup
+    assert "concise spoken summary" in setup
     assert "left panel" in setup
-    assert "do not recite" in setup
-    assert FIRST_BAD_VERSION_QUESTION.lower() not in setup
+    assert "python" in setup
+    assert "confirm" in setup
+    assert "exactly one question" in setup
+    assert "not the one" in setup
+    assert "do not read" in setup
+    assert RIGHT_SIDE_VIEW_QUESTION.lower() not in setup
+
+
+@pytest.mark.asyncio
+async def test_discussion_setup_asks_for_language_when_session_has_none() -> None:
+    agent = DiscussionAgent()
+    session = RecordingSession()
+    session.userdata = InterviewContext()
+    attach_session(agent, session)
+
+    await agent.on_enter()
+
+    setup = session.generated_instructions[0].lower()
+    assert "ask which programming language" in setup
+    assert "confirm that the candidate is using" not in setup
+    assert "not the one" in setup
 
 
 @pytest.mark.asyncio

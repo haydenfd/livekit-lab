@@ -4,9 +4,9 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 
 from agents.conclusion import ConclusionAgent
 from agents.prompts import (
-    DISCUSSION_SETUP_INSTRUCTIONS,
-    FIRST_BAD_VERSION_QUESTION,
+    RIGHT_SIDE_VIEW_QUESTION,
     build_discussion_prompt,
+    build_discussion_setup_instructions,
     build_instructions,
 )
 
@@ -17,7 +17,7 @@ class DiscussionAgent(Agent):
     def __init__(
         self,
         *,
-        question: str = FIRST_BAD_VERSION_QUESTION,
+        question: str = RIGHT_SIDE_VIEW_QUESTION,
         chat_ctx: ChatContext | None = None,
     ) -> None:
         super().__init__(
@@ -26,7 +26,11 @@ class DiscussionAgent(Agent):
         )
 
     async def on_enter(self) -> None:
-        await self.session.generate_reply(instructions=DISCUSSION_SETUP_INSTRUCTIONS)
+        await self.session.generate_reply(
+            instructions=build_discussion_setup_instructions(
+                self.session.userdata.programming_language
+            )
+        )
 
     @function_tool()
     async def finish_discussion(self, context: RunContext[None]) -> ConclusionAgent:
