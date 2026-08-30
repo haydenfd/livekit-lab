@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'pyproject.toml'
+      - 'server/pyproject.toml'
 
 permissions:
   contents: write
@@ -26,7 +26,7 @@ jobs:
 
         extract_version() {
           local ref="$1"
-          git show "$ref:pyproject.toml" 2>/dev/null \
+          git show "$ref:server/pyproject.toml" 2>/dev/null \
             | grep -oE '"livekit-agents(\[[^]]*\])?==[^"]+"' \
             | head -n1 \
             | sed -E 's/.*==([^"]+)"/\1/' \
@@ -40,7 +40,7 @@ jobs:
         echo "previous=$previous"
 
         if [ -z "$current" ]; then
-          echo "No livekit-agents==X.Y.Z pin found in pyproject.toml; skipping."
+          echo "No livekit-agents==X.Y.Z pin found in server/pyproject.toml; skipping."
           echo "should_tag=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
