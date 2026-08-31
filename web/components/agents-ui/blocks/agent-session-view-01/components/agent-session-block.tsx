@@ -8,6 +8,7 @@ import {
   AgentControlBar,
   type AgentControlBarControls,
 } from '@/components/agents-ui/agent-control-bar';
+import { CodeEditor } from '@/components/editor/code-editor';
 import { cn } from '@/lib/shadcn/utils';
 import { TileLayout } from './tile-view';
 
@@ -180,7 +181,7 @@ export function AgentSessionView_01({
 }: React.ComponentProps<'section'> & AgentSessionView_01Props) {
   const session = useSessionContext();
   const { messages } = useSessionMessages(session);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { state: agentState } = useAgent();
 
@@ -204,71 +205,78 @@ export function AgentSessionView_01({
   return (
     <section
       ref={ref}
-      className={cn('bg-background relative z-10 h-full w-full overflow-hidden', className)}
+      className={cn(
+        'bg-background relative z-10 flex h-full w-full flex-col overflow-hidden md:flex-row',
+        className
+      )}
       {...props}
     >
-      <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
-      {/* transcript */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            {...CHAT_MOTION_PROPS}
-            className="absolute inset-x-0 top-0 bottom-[135px] overflow-hidden md:bottom-[170px]"
-          >
-            <AgentChatTranscript
-              agentState={agentState}
-              messages={messages}
-              className="mx-auto max-w-2xl **:data-[slot=message-scroller-content]:p-4 **:data-[slot=message-scroller-content]:pt-40! md:**:data-[slot=message-scroller-content]:p-6"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <CodeEditor className="h-[42%] max-h-[50%] min-h-[260px] md:h-full md:max-h-none" />
 
-      {/* Tile layout */}
-      <TileLayout
-        isChatOpen={isChatOpen}
-        themeMode={themeMode}
-        audioVisualizerType={audioVisualizerType}
-        audioVisualizerColor={audioVisualizerColor}
-        audioVisualizerColorShift={audioVisualizerColorShift}
-        audioVisualizerBarCount={audioVisualizerBarCount}
-        audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
-        audioVisualizerRadialRadius={audioVisualizerRadialRadius}
-        audioVisualizerGridRowCount={audioVisualizerGridRowCount}
-        audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
-        audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
-      />
-      {/* Bottom */}
-      <motion.div
-        {...BOTTOM_VIEW_MOTION_PROPS}
-        className="absolute inset-x-3 bottom-0 z-50 md:inset-x-12"
-      >
-        {/* Pre-connect message */}
-        {isPreConnectBufferEnabled && (
-          <AnimatePresence>
-            {messages.length === 0 && (
-              <motion.p
-                key="pre-connect-message"
-                aria-hidden={messages.length > 0}
-                {...SHIMMER_MOTION_PROPS}
-                className="shimmer shimmer-duration-2000 pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
-              >
-                {preConnectMessage}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        )}
-        <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
-          <AgentControlBar
-            variant="livekit"
-            controls={controls}
-            isChatOpen={isChatOpen}
-            isConnected={session.isConnected}
-            onDisconnect={session.end}
-            onIsChatOpenChange={setIsChatOpen}
-          />
-        </div>
-      </motion.div>
+      <div className="relative min-h-0 min-w-0 flex-1">
+        <Fade top className="absolute inset-x-4 top-0 z-10 h-40" />
+        {/* transcript */}
+        <AnimatePresence>
+          {isChatOpen && (
+            <motion.div
+              {...CHAT_MOTION_PROPS}
+              className="absolute inset-x-0 top-0 bottom-[135px] overflow-hidden md:bottom-[170px]"
+            >
+              <AgentChatTranscript
+                agentState={agentState}
+                messages={messages}
+                className="mx-auto max-w-2xl **:data-[slot=message-scroller-content]:p-4 **:data-[slot=message-scroller-content]:pt-40! md:**:data-[slot=message-scroller-content]:p-6"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tile layout */}
+        <TileLayout
+          isChatOpen={isChatOpen}
+          themeMode={themeMode}
+          audioVisualizerType={audioVisualizerType}
+          audioVisualizerColor={audioVisualizerColor}
+          audioVisualizerColorShift={audioVisualizerColorShift}
+          audioVisualizerBarCount={audioVisualizerBarCount}
+          audioVisualizerRadialBarCount={audioVisualizerRadialBarCount}
+          audioVisualizerRadialRadius={audioVisualizerRadialRadius}
+          audioVisualizerGridRowCount={audioVisualizerGridRowCount}
+          audioVisualizerGridColumnCount={audioVisualizerGridColumnCount}
+          audioVisualizerWaveLineWidth={audioVisualizerWaveLineWidth}
+        />
+        {/* Bottom */}
+        <motion.div
+          {...BOTTOM_VIEW_MOTION_PROPS}
+          className="absolute inset-x-3 bottom-0 z-50 md:inset-x-12"
+        >
+          {/* Pre-connect message */}
+          {isPreConnectBufferEnabled && (
+            <AnimatePresence>
+              {messages.length === 0 && (
+                <motion.p
+                  key="pre-connect-message"
+                  aria-hidden={messages.length > 0}
+                  {...SHIMMER_MOTION_PROPS}
+                  className="shimmer shimmer-duration-2000 pointer-events-none mx-auto block w-full max-w-2xl pb-4 text-center text-sm font-semibold"
+                >
+                  {preConnectMessage}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          )}
+          <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
+            <AgentControlBar
+              variant="livekit"
+              controls={controls}
+              isChatOpen={isChatOpen}
+              isConnected={session.isConnected}
+              onDisconnect={session.end}
+              onIsChatOpenChange={setIsChatOpen}
+            />
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }
