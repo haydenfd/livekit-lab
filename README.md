@@ -4,7 +4,7 @@ AlgoVox is a voice interview app with a Python LiveKit agent and a Next.js brows
 
 ```text
 web/       Next.js voice interface
-server/    Python agent using Groq GPT-OSS 120B and Deepgram STT/TTS
+server/    Python agent using OpenAI GPT-5.6 and Deepgram STT/TTS
 .env       Shared local credentials
 ```
 
@@ -16,7 +16,7 @@ Keep provider credentials in the repository root `.env.local`:
 LIVEKIT_URL=ws://127.0.0.1:7880
 LIVEKIT_API_KEY=devkey
 LIVEKIT_API_SECRET=secret
-GROQ_API_KEY=your_groq_key
+OPENAI_API_KEY=your_openai_key
 DEEPGRAM_API_KEY=your_deepgram_key
 ```
 

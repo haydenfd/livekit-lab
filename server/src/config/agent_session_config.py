@@ -1,7 +1,7 @@
 """Shared LiveKit AgentSession configuration factory."""
 
 from livekit.agents import TurnHandlingOptions, inference
-from livekit.plugins import deepgram, groq
+from livekit.plugins import deepgram, openai
 
 
 def build_agent_session_config() -> dict[str, object]:
@@ -12,7 +12,9 @@ def build_agent_session_config() -> dict[str, object]:
             language="en-US",
             smart_format=True,
         ),
-        "llm": groq.LLM(model="openai/gpt-oss-120b"),
+        # GPT-5.6 function tools require OpenAI's Responses API, not Chat Completions.
+        # The plugin reads OPENAI_API_KEY.
+        "llm": openai.responses.LLM(model="gpt-5.6"),
         "tts": deepgram.TTS(model="aura-2-asteria-en"),
         "turn_handling": TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),

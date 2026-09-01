@@ -8,7 +8,7 @@ A minimal AlgoVox voice interviewer built with [LiveKit Agents for Python](https
 
 The starter project includes:
 
-- Groq `openai/gpt-oss-120b` as the interviewer brain
+- OpenAI `gpt-5.6` as the interviewer brain
 - Deepgram Nova 3 for speech-to-text
 - Deepgram Aura 2 for text-to-speech
 - A focused interviewer prompt with one-question-at-a-time follow-ups
@@ -81,10 +81,10 @@ Copy `.env.example` to `.env.local` and fill in the provider and LiveKit credent
 - `LIVEKIT_URL`
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
-- `GROQ_API_KEY`
+- `OPENAI_API_KEY`
 - `DEEPGRAM_API_KEY`
 
-For a local console test, only `GROQ_API_KEY` and `DEEPGRAM_API_KEY` are needed. LiveKit credentials are not required because console mode simulates a session locally without connecting to LiveKit Cloud.
+For a local console test, only `OPENAI_API_KEY` and `DEEPGRAM_API_KEY` are needed. LiveKit credentials are not required because console mode simulates a session locally without connecting to LiveKit Cloud.
 
 Start with text input:
 
