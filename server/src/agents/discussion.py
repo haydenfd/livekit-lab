@@ -5,8 +5,8 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 from agents.conclusion import ConclusionAgent
 from agents.prompts import (
     RIGHT_SIDE_VIEW_QUESTION,
+    build_discussion_opening,
     build_discussion_prompt,
-    build_discussion_setup_instructions,
     build_instructions,
 )
 
@@ -26,10 +26,9 @@ class DiscussionAgent(Agent):
         )
 
     async def on_enter(self) -> None:
-        await self.session.generate_reply(
-            instructions=build_discussion_setup_instructions(
-                self.session.userdata.programming_language
-            )
+        await self.session.say(
+            build_discussion_opening(self.session.userdata.programming_language),
+            allow_interruptions=False,
         )
 
     @function_tool()

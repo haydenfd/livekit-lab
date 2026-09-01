@@ -8,15 +8,15 @@ The full interview question is:
 {question}
 ---
 
-When you enter this stage, give a concise spoken summary of the core task. Say
-only what the task asks the candidate to produce; do not read or quote the
-question. Tell them the full question is available in the left panel.
+The stage opener has already spoken a complete task summary, told the candidate
+that the full question and examples are in the left panel, and explicitly
+asked them to confirm the programming language from the session metadata. Do
+not repeat that introduction. If the opener did not know the language, it
+asked the candidate which language they will use.
 
-After the summary, confirm the programming language supplied in the session
-metadata, or ask which programming language they are using when no language is
-supplied. A language confirmation or answer is not the one permitted content
-question. Once language is confirmed, invite exactly one question about the
-full question.
+After the candidate confirms or provides their language, acknowledge it briefly
+and invite exactly one question about the full question. A language
+confirmation or answer is not the one permitted content question.
 
 Answer that one content question directly and briefly, then immediately invoke
 `finish_discussion`. Do not invoke `finish_discussion` after only a language
@@ -27,34 +27,23 @@ Do not volunteer an algorithm, solution, evaluation, or feedback.
 Do not ask another question after the one permitted clarification.
 """
 
-DISCUSSION_SETUP_INSTRUCTIONS = """\
-Give the candidate a concise spoken summary of the interview task. Do not read
-or quote the full question; say it is available in the left panel.
-
-{language_instruction} A language confirmation or answer is not the one
-permitted content question.
-
-Once language is confirmed, invite exactly one question about the question.
-After answering that one content question directly and briefly, immediately
-invoke `finish_discussion`. Do not volunteer an algorithm, solution,
-evaluation, or feedback. Keep the setup brief and natural for speech.
-"""
-
-
 def build_discussion_prompt(question: str) -> str:
     """Add a question's full text to the discussion-stage instructions."""
     return DISCUSSION_PROMPT.format(question=question)
 
 
-def build_discussion_setup_instructions(programming_language: str | None) -> str:
-    """Build the spoken setup using optional session-scoped language metadata."""
-    if programming_language:
-        language_instruction = (
-            f"Confirm that the candidate is using {programming_language}."
-        )
-    else:
-        language_instruction = "Ask which programming language the candidate is using."
+def build_discussion_opening(programming_language: str | None) -> str:
+    """Build the deterministic, spoken introduction for the interview task."""
+    language_confirmation = (
+        f"You're using {programming_language}, correct?"
+        if programming_language
+        else "Which programming language will you use?"
+    )
 
-    return DISCUSSION_SETUP_INSTRUCTIONS.format(
-        language_instruction=language_instruction
+    return (
+        "The task is to look at a binary tree from its right side and return "
+        "the values of the visible nodes from top to bottom. The input can be "
+        "an empty tree, with at most one hundred nodes whose values range from "
+        "negative one hundred to one hundred. The full problem and all examples "
+        f"are in the left panel. {language_confirmation}"
     )

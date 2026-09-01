@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TokenSource } from 'livekit-client';
+import { Room, TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
 import type { AppConfig } from '@/app-config';
@@ -12,6 +12,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { useAgentErrors } from '@/hooks/useAgentErrors';
 import { useDebugMode } from '@/hooks/useDebug';
 import { getSandboxTokenSource } from '@/lib/utils';
+import { MICROPHONE_CAPTURE_CONSTRAINTS } from '@/lib/microphone-gate';
 
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
@@ -33,9 +34,17 @@ export function App({ appConfig }: AppProps) {
       : TokenSource.endpoint('/api/token');
   }, [appConfig]);
 
+  const room = useMemo(
+    () => new Room({ audioCaptureDefaults: MICROPHONE_CAPTURE_CONSTRAINTS }),
+    []
+  );
+
   const session = useSession(
     tokenSource,
-    appConfig.agentName ? { agentName: appConfig.agentName } : undefined
+    {
+      room,
+      ...(appConfig.agentName ? { agentName: appConfig.agentName } : {}),
+    }
   );
 
   return (

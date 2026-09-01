@@ -27,13 +27,11 @@ def build_agent_session_config() -> dict[str, object]:
             #     "alpha": 0.9,  # Dynamic endpointing's history weighting.
             # },
             interruption={
-                "mode": "adaptive",
-                # "enabled": False,  # Prevent users from interrupting speech.
-                # "min_duration": 0.5,  # Minimum speech for an interruption.
-                # "min_words": 0,  # Minimum STT words for an interruption.
-                # "discard_audio_if_uninterruptible": True,  # Drop audio then.
-                # "false_interruption_timeout": 2.0,  # Silence before false flag.
-                # "resume_false_interruption": True,  # Resume after a false flag.
+                # Keep every reply playing until it is complete. Incoming speech
+                # is discarded while the agent is speaking, then accepted on the
+                # next turn without changing the browser microphone state.
+                "enabled": False,
+                "discard_audio_if_uninterruptible": True,
             },
             preemptive_generation={
                 "enabled": False,

@@ -4,6 +4,7 @@ import pytest
 
 from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
+from agents.prompts.discussion import build_discussion_opening
 from agents.prompts.questions import RIGHT_SIDE_VIEW_QUESTION
 from interview_context import InterviewContext
 
@@ -83,9 +84,7 @@ def test_discussion_accepts_an_injected_question() -> None:
 
 
 @pytest.mark.asyncio
-async def test_discussion_setup_confirms_session_language_then_allows_one_question() -> (
-    None
-):
+async def test_discussion_opener_summarizes_the_full_task_and_confirms_language() -> None:
     agent = DiscussionAgent()
     session = RecordingSession()
     session.userdata = InterviewContext(programming_language="python")
@@ -93,20 +92,26 @@ async def test_discussion_setup_confirms_session_language_then_allows_one_questi
 
     await agent.on_enter()
 
-    assert len(session.generated_instructions) == 1
-    setup = session.generated_instructions[0].lower()
-    assert "concise spoken summary" in setup
-    assert "left panel" in setup
-    assert "python" in setup
-    assert "confirm" in setup
-    assert "exactly one question" in setup
-    assert "not the one" in setup
-    assert "do not read" in setup
-    assert RIGHT_SIDE_VIEW_QUESTION.lower() not in setup
+    assert session.generated_instructions == []
+    assert session.spoken == [
+        (
+            build_discussion_opening("python"),
+            {"allow_interruptions": False},
+        )
+    ]
+
+    opener = session.spoken[0][0].lower()
+    assert "binary tree" in opener
+    assert "right side" in opener
+    assert "top to bottom" in opener
+    assert "empty" in opener
+    assert "one hundred" in opener
+    assert "left panel" in opener
+    assert "you're using python, correct?" in opener
 
 
 @pytest.mark.asyncio
-async def test_discussion_setup_asks_for_language_when_session_has_none() -> None:
+async def test_discussion_opener_asks_for_language_when_session_has_none() -> None:
     agent = DiscussionAgent()
     session = RecordingSession()
     session.userdata = InterviewContext()
@@ -114,10 +119,13 @@ async def test_discussion_setup_asks_for_language_when_session_has_none() -> Non
 
     await agent.on_enter()
 
-    setup = session.generated_instructions[0].lower()
-    assert "ask which programming language" in setup
-    assert "confirm that the candidate is using" not in setup
-    assert "not the one" in setup
+    assert session.spoken == [
+        (
+            build_discussion_opening(None),
+            {"allow_interruptions": False},
+        )
+    ]
+    assert "which programming language will you use?" in session.spoken[0][0].lower()
 
 
 @pytest.mark.asyncio
