@@ -162,3 +162,11 @@ Also add a short README section explaining the path the programming language tak
   - For perceived pace, make spoken responses shorter before changing the voice. One sentence and one question usually feels faster and more interview-like than increasing audio playback speed.
   - The current Deepgram Aura-2 plugin documentation does not expose a speaking-rate parameter. If actual words-per-minute control is required, benchmark a supported TTS provider with an explicit rate setting or choose a naturally faster voice rather than relying on an undocumented Deepgram option.
   - Add a small voice benchmark using the same five interview lines and compare time-to-first-audio, words per minute, intelligibility, and interruption behavior before switching providers or voices.
+
+- Intro sees only title + statement, so its summary generation stays focused.
+- Discussion sees everything the candidate can reasonably reference verbally: statement, examples, constraints.
+- Hints, tags, starter code, images stay available in application data without leaking into normal interviewer context.
+- The raw DB-shaped fixture remains separate from the normalized runtime object.
+- The same normalized object flows through the session.
+
+- The rendered discussion block is also good prompt material. It’s compact, readable, and avoids duplicate HTML/raw fields.

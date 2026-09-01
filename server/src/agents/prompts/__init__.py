@@ -7,14 +7,18 @@ from agents.prompts.intro import (
     LEFT_PANEL_LINE,
     build_intro_opening_instructions,
 )
-from agents.prompts.questions import RIGHT_SIDE_VIEW_QUESTION
+from agents.prompts.questions import (
+    MERGE_TWO_SORTED_LISTS_QUESTION,
+    MERGE_TWO_SORTED_LISTS_ROW,
+)
 
 __all__ = [
     "BASE_INTERVIEWER_PROMPT",
     "DISCUSSION_PROMPT",
     "INTRO_PROMPT",
     "LEFT_PANEL_LINE",
-    "RIGHT_SIDE_VIEW_QUESTION",
+    "MERGE_TWO_SORTED_LISTS_QUESTION",
+    "MERGE_TWO_SORTED_LISTS_ROW",
     "build_discussion_prompt",
     "build_instructions",
     "build_intro_opening_instructions",

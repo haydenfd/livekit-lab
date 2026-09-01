@@ -5,11 +5,12 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 from agents.discussion import DiscussionAgent
 from agents.prompts import (
     INTRO_PROMPT,
-    RIGHT_SIDE_VIEW_QUESTION,
+    MERGE_TWO_SORTED_LISTS_QUESTION,
     build_instructions,
     build_intro_opening_instructions,
 )
 from agents.prompts.intro import LEFT_PANEL_LINE
+from interview_question import InterviewQuestion
 
 
 class IntroAgent(Agent):
@@ -18,7 +19,7 @@ class IntroAgent(Agent):
     def __init__(
         self,
         *,
-        question: str = RIGHT_SIDE_VIEW_QUESTION,
+        question: InterviewQuestion = MERGE_TWO_SORTED_LISTS_QUESTION,
         chat_ctx: ChatContext | None = None,
     ) -> None:
         super().__init__(

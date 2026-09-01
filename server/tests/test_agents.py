@@ -7,47 +7,41 @@ from agents.discussion import DiscussionAgent
 from agents.intro import IntroAgent
 from agents.prompts import (
     LEFT_PANEL_LINE,
-    RIGHT_SIDE_VIEW_QUESTION,
+    MERGE_TWO_SORTED_LISTS_QUESTION,
+    build_discussion_prompt,
     build_intro_opening_instructions,
 )
+from interview_question import (
+    InterviewQuestion,
+    QuestionExample,
+    build_discussion_question_context,
+    build_intro_question_context,
+)
 
-EXPECTED_RIGHT_SIDE_VIEW_QUESTION = """\
-Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
 
-Example 1:
-
-Input: root = [1,2,3,null,5,null,4]
-
-Output: [1,3,4]
-
-Explanation:
-
-Example 2:
-
-Input: root = [1,2,3,4,null,null,null,5]
-
-Output: [1,3,4,5]
-
-Explanation:
-
-Example 3:
-
-Input: root = [1,null,3]
-
-Output: [1,3]
-
-Example 4:
-
-Input: root = []
-
-Output: []
-
-Constraints:
-
-The number of nodes in the tree is in the range [0, 100].
-
--100 <= Node.val <= 100
-"""
+def make_question(**overrides: object) -> InterviewQuestion:
+    values: dict[str, object] = {
+        "idx": 99,
+        "slug": "injected-question",
+        "title": "Injected Question",
+        "difficulty": "easy",
+        "topic_tags": ("Graphs",),
+        "prompt": "Explain how to merge two sorted linked lists.",
+        "examples": (
+            QuestionExample(
+                label="Example 1",
+                input="list1 = [1], list2 = [2]",
+                output="[1,2]",
+                explanation=None,
+                images=(),
+            ),
+        ),
+        "constraints": ("Both lists are sorted.",),
+        "hints": ("use two pointers",),
+        "starter_code": {"python": {"raw_code": "def merge(): pass"}},
+    }
+    values.update(overrides)
+    return InterviewQuestion(**values)  # type: ignore[arg-type]
 
 
 class FakeSpeechHandle:
@@ -91,20 +85,27 @@ def attach_session(agent: object, session: RecordingSession) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
 
-def test_discussion_instructions_include_the_verbatim_static_question() -> None:
+def test_discussion_instructions_include_discussion_context() -> None:
     agent = DiscussionAgent()
+    context = build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION)
 
-    assert RIGHT_SIDE_VIEW_QUESTION == EXPECTED_RIGHT_SIDE_VIEW_QUESTION
-    assert EXPECTED_RIGHT_SIDE_VIEW_QUESTION in agent.instructions
+    assert context in agent.instructions
+    assert "Example 1:" in agent.instructions
+    assert "-100 <= Node.val <= 100" in agent.instructions
+    assert "Linked List" not in agent.instructions
+    assert "use two pointers" not in agent.instructions
 
 
 def test_discussion_accepts_an_injected_question() -> None:
-    question = "Explain how to merge two sorted linked lists."
+    question = make_question()
 
     agent = DiscussionAgent(question=question)
 
-    assert question in agent.instructions
-    assert RIGHT_SIDE_VIEW_QUESTION not in agent.instructions
+    assert question.prompt in agent.instructions
+    assert build_discussion_question_context(question) in agent.instructions
+    assert build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION) not in (
+        agent.instructions
+    )
 
 
 def test_discussion_does_not_override_on_enter() -> None:
@@ -112,13 +113,14 @@ def test_discussion_does_not_override_on_enter() -> None:
 
 
 def test_intro_opening_instructions_request_a_concise_core_task_summary() -> None:
-    question = "Explain how to merge two sorted linked lists."
+    question = make_question()
 
     instructions = build_intro_opening_instructions(question)
 
-    assert question in instructions
+    assert build_intro_question_context(question) in instructions
+    assert question.prompt in instructions
+    assert "Example 1" not in instructions
     lowered = instructions.lower()
-    assert "right side view" not in lowered
     assert "constraint" in lowered
     assert "example" in lowered
     assert "algorithm" in lowered
@@ -141,27 +143,38 @@ async def test_intro_transition_speaks_intro_then_hands_off_to_discussion() -> N
         f"wait:say:{LEFT_PANEL_LINE}",
     ]
     assert session.generated_instructions == [
-        build_intro_opening_instructions(RIGHT_SIDE_VIEW_QUESTION)
+        build_intro_opening_instructions(MERGE_TWO_SORTED_LISTS_QUESTION)
     ]
     assert session.generate_kwargs[0]["tool_choice"] == "none"
     assert session.generate_kwargs[0]["allow_interruptions"] is False
     assert session.spoken == [(LEFT_PANEL_LINE, {"allow_interruptions": False})]
     assert isinstance(discussion, DiscussionAgent)
-    assert RIGHT_SIDE_VIEW_QUESTION in discussion.instructions
+    assert discussion._question is agent._question
+    assert discussion._question is MERGE_TWO_SORTED_LISTS_QUESTION
+    assert (
+        build_intro_question_context(MERGE_TWO_SORTED_LISTS_QUESTION)
+        in (session.generated_instructions[0])
+    )
+    assert build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION) in (
+        discussion.instructions
+    )
 
 
 @pytest.mark.asyncio
 async def test_intro_transition_forwards_the_injected_question() -> None:
-    question = "Explain how to merge two sorted linked lists."
+    question = make_question()
     agent = IntroAgent(question=question)
     session = RecordingSession()
     attach_session(agent, session)
 
     discussion = await agent.move_to_discussion.__wrapped__(agent, None)
 
-    assert question in session.generated_instructions[0]
-    assert question in discussion.instructions
-    assert RIGHT_SIDE_VIEW_QUESTION not in discussion.instructions
+    assert discussion._question is question
+    assert build_intro_question_context(question) in session.generated_instructions[0]
+    assert build_discussion_question_context(question) in discussion.instructions
+    assert build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION) not in (
+        discussion.instructions
+    )
 
 
 @pytest.mark.asyncio
@@ -186,3 +199,14 @@ async def test_conclusion_keeps_uninterruptible_closing_and_shutdown() -> None:
         ("We're done for now. Let's call it.", {"allow_interruptions": False})
     ]
     assert session.shutdown_called
+
+
+def test_build_discussion_prompt_uses_discussion_context() -> None:
+    prompt = build_discussion_prompt(MERGE_TWO_SORTED_LISTS_QUESTION)
+    context = build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION)
+
+    assert context in prompt
+    assert "https://assets.leetcode.com" not in prompt
+    assert prompt.index("You are currently in the discussion stage.") < prompt.index(
+        context
+    )

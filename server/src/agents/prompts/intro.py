@@ -1,5 +1,7 @@
 """Intro-stage prompt."""
 
+from interview_question import InterviewQuestion, build_intro_question_context
+
 INTRO_PROMPT = """\
 You are currently in the intro stage.
 
@@ -17,7 +19,7 @@ LEFT_PANEL_LINE = (
 )
 
 
-def build_intro_opening_instructions(question: str) -> str:
+def build_intro_opening_instructions(question: InterviewQuestion) -> str:
     """Instructions for generating the spoken problem summary in the intro stage."""
     return f"""\
 Speak a short spoken introduction to the interview problem below.
@@ -34,7 +36,5 @@ Rules for the introduction:
 - Stop after the summary.
 
 The interview question is:
----
-{question}
----
+{build_intro_question_context(question)}
 """

@@ -1,39 +1,11 @@
 """Canonical interview question definitions."""
 
-RIGHT_SIDE_VIEW_QUESTION = """\
-Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
+import json
+from pathlib import Path
 
-Example 1:
+from interview_question import parse_question_row
 
-Input: root = [1,2,3,null,5,null,4]
-
-Output: [1,3,4]
-
-Explanation:
-
-Example 2:
-
-Input: root = [1,2,3,4,null,null,null,5]
-
-Output: [1,3,4,5]
-
-Explanation:
-
-Example 3:
-
-Input: root = [1,null,3]
-
-Output: [1,3]
-
-Example 4:
-
-Input: root = []
-
-Output: []
-
-Constraints:
-
-The number of nodes in the tree is in the range [0, 100].
-
--100 <= Node.val <= 100
-"""
+MERGE_TWO_SORTED_LISTS_ROW = json.loads(
+    Path(__file__).with_name("merge_two_sorted_lists_row.json").read_text()
+)
+MERGE_TWO_SORTED_LISTS_QUESTION = parse_question_row(MERGE_TWO_SORTED_LISTS_ROW[0])
