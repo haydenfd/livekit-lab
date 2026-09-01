@@ -4,9 +4,12 @@ import pytest
 
 from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
-from agents.prompts.discussion import build_discussion_opening
-from agents.prompts.questions import RIGHT_SIDE_VIEW_QUESTION
-from interview_context import InterviewContext
+from agents.intro import IntroAgent
+from agents.prompts import (
+    LEFT_PANEL_LINE,
+    RIGHT_SIDE_VIEW_QUESTION,
+    build_intro_opening_instructions,
+)
 
 EXPECTED_RIGHT_SIDE_VIEW_QUESTION = """\
 Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
@@ -47,17 +50,38 @@ The number of nodes in the tree is in the range [0, 100].
 """
 
 
+class FakeSpeechHandle:
+    def __init__(self, events: list[str], label: str) -> None:
+        self._events = events
+        self._label = label
+
+    async def wait_for_playout(self) -> None:
+        self._events.append(f"wait:{self._label}")
+
+    def __await__(self):
+        return self.wait_for_playout().__await__()
+
+
 class RecordingSession:
     def __init__(self) -> None:
+        self.events: list[str] = []
         self.generated_instructions: list[str] = []
+        self.generate_kwargs: list[dict[str, object]] = []
         self.spoken: list[tuple[str, dict[str, object]]] = []
         self.shutdown_called = False
 
-    async def generate_reply(self, *, instructions: str) -> None:
+    def generate_reply(
+        self, *, instructions: str, **kwargs: object
+    ) -> FakeSpeechHandle:
+        self.events.append("generate_reply")
         self.generated_instructions.append(instructions)
+        self.generate_kwargs.append(kwargs)
+        return FakeSpeechHandle(self.events, "generate_reply")
 
-    async def say(self, text: str, **kwargs: object) -> None:
+    def say(self, text: str, **kwargs: object) -> FakeSpeechHandle:
+        self.events.append(f"say:{text}")
         self.spoken.append((text, kwargs))
+        return FakeSpeechHandle(self.events, f"say:{text}")
 
     def shutdown(self) -> None:
         self.shutdown_called = True
@@ -83,49 +107,61 @@ def test_discussion_accepts_an_injected_question() -> None:
     assert RIGHT_SIDE_VIEW_QUESTION not in agent.instructions
 
 
-@pytest.mark.asyncio
-async def test_discussion_opener_summarizes_the_full_task_and_confirms_language() -> None:
-    agent = DiscussionAgent()
-    session = RecordingSession()
-    session.userdata = InterviewContext(programming_language="python")
-    attach_session(agent, session)
+def test_discussion_does_not_override_on_enter() -> None:
+    assert "on_enter" not in DiscussionAgent.__dict__
 
-    await agent.on_enter()
 
-    assert session.generated_instructions == []
-    assert session.spoken == [
-        (
-            build_discussion_opening("python"),
-            {"allow_interruptions": False},
-        )
-    ]
+def test_intro_opening_instructions_request_a_concise_core_task_summary() -> None:
+    question = "Explain how to merge two sorted linked lists."
 
-    opener = session.spoken[0][0].lower()
-    assert "binary tree" in opener
-    assert "right side" in opener
-    assert "top to bottom" in opener
-    assert "empty" in opener
-    assert "one hundred" in opener
-    assert "left panel" in opener
-    assert "you're using python, correct?" in opener
+    instructions = build_intro_opening_instructions(question)
+
+    assert question in instructions
+    lowered = instructions.lower()
+    assert "right side view" not in lowered
+    assert "constraint" in lowered
+    assert "example" in lowered
+    assert "algorithm" in lowered
+    assert "do not ask any questions" in lowered
+    assert "do not mention a programming language" in lowered
 
 
 @pytest.mark.asyncio
-async def test_discussion_opener_asks_for_language_when_session_has_none() -> None:
-    agent = DiscussionAgent()
+async def test_intro_transition_speaks_intro_then_hands_off_to_discussion() -> None:
+    agent = IntroAgent()
     session = RecordingSession()
-    session.userdata = InterviewContext()
     attach_session(agent, session)
 
-    await agent.on_enter()
+    discussion = await agent.move_to_discussion.__wrapped__(agent, None)
 
-    assert session.spoken == [
-        (
-            build_discussion_opening(None),
-            {"allow_interruptions": False},
-        )
+    assert session.events == [
+        "generate_reply",
+        "wait:generate_reply",
+        f"say:{LEFT_PANEL_LINE}",
+        f"wait:say:{LEFT_PANEL_LINE}",
     ]
-    assert "which programming language will you use?" in session.spoken[0][0].lower()
+    assert session.generated_instructions == [
+        build_intro_opening_instructions(RIGHT_SIDE_VIEW_QUESTION)
+    ]
+    assert session.generate_kwargs[0]["tool_choice"] == "none"
+    assert session.generate_kwargs[0]["allow_interruptions"] is False
+    assert session.spoken == [(LEFT_PANEL_LINE, {"allow_interruptions": False})]
+    assert isinstance(discussion, DiscussionAgent)
+    assert RIGHT_SIDE_VIEW_QUESTION in discussion.instructions
+
+
+@pytest.mark.asyncio
+async def test_intro_transition_forwards_the_injected_question() -> None:
+    question = "Explain how to merge two sorted linked lists."
+    agent = IntroAgent(question=question)
+    session = RecordingSession()
+    attach_session(agent, session)
+
+    discussion = await agent.move_to_discussion.__wrapped__(agent, None)
+
+    assert question in session.generated_instructions[0]
+    assert question in discussion.instructions
+    assert RIGHT_SIDE_VIEW_QUESTION not in discussion.instructions
 
 
 @pytest.mark.asyncio

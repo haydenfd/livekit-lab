@@ -49,14 +49,29 @@ def test_create_agent_session_receives_typed_interview_context(
     assert captured["userdata"] is context
 
 
+class StubSpeechHandle:
+    async def wait_for_playout(self) -> None:
+        pass
+
+
+class StubSession:
+    def __init__(self, userdata: InterviewContext) -> None:
+        self.userdata = userdata
+
+    def generate_reply(self, **kwargs: object) -> StubSpeechHandle:
+        return StubSpeechHandle()
+
+    def say(self, text: str, **kwargs: object) -> StubSpeechHandle:
+        return StubSpeechHandle()
+
+
 @pytest.mark.asyncio
 async def test_handoff_uses_the_same_session_userdata() -> None:
     context = InterviewContext(programming_language="python")
-    session = SimpleNamespace(userdata=context)
     intro = IntroAgent()
-    intro._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
+    intro._activity = SimpleNamespace(session=StubSession(context))  # type: ignore[attr-defined]
 
     discussion = await intro.move_to_discussion.__wrapped__(intro, None)
-    discussion._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
+    discussion._activity = SimpleNamespace(session=StubSession(context))  # type: ignore[attr-defined]
 
     assert discussion.session.userdata is context

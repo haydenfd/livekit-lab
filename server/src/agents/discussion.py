@@ -5,14 +5,13 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 from agents.conclusion import ConclusionAgent
 from agents.prompts import (
     RIGHT_SIDE_VIEW_QUESTION,
-    build_discussion_opening,
     build_discussion_prompt,
     build_instructions,
 )
 
 
 class DiscussionAgent(Agent):
-    """Present one interview question, then hand off to conclusion."""
+    """Discuss the already-introduced question, then hand off to conclusion."""
 
     def __init__(
         self,
@@ -23,12 +22,6 @@ class DiscussionAgent(Agent):
         super().__init__(
             instructions=build_instructions(build_discussion_prompt(question)),
             chat_ctx=chat_ctx,
-        )
-
-    async def on_enter(self) -> None:
-        await self.session.say(
-            build_discussion_opening(self.session.userdata.programming_language),
-            allow_interruptions=False,
         )
 
     @function_tool()
