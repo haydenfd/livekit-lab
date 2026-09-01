@@ -170,3 +170,97 @@ Also add a short README section explaining the path the programming language tak
 - The same normalized object flows through the session.
 
 - The rendered discussion block is also good prompt material. It’s compact, readable, and avoids duplicate HTML/raw fields.
+
+
+
+## DiscussionAgent Response Policy
+
+- Clarification 
+- Approach reasoning
+- Approach refining
+- Hint Request -- not sure how this plays out
+
+Candidate asks a factual question about the problem
+        ↓
+Is the answer explicitly stated or directly derivable
+from the supplied problem context?
+        │
+        ├─ YES
+        │    → answer directly and briefly
+        │    → do not add algorithmic guidance
+        │    → let candidate continue
+        │
+        └─ NO
+             ↓
+Is this just clarification of ordinary terminology?
+             │
+             ├─ YES
+             │    → explain the term normally
+             │
+             └─ NO
+                  → say the problem does not specify
+                     rather than inventing a guarantee
+
+INITIAL APPROACH DEVELOPMENT
+
+Goal:
+Understand enough of the candidate's proposed solution that it could
+reasonably be implemented.
+
+If vague:
+    ask one question that makes it more concrete.
+
+If candidate is actively developing it:
+    stay out of the way.
+
+If sufficiently concrete:
+    stop probing for details they already supplied.
+
+If they seem to have reached a stable approach:
+    optionally summarize it once to confirm understanding.
+
+
+Determine what has already been established in the conversation, then ask only about important missing reasoning.
+When the candidate introduces a nontrivial algorithmic technique,
+make sure their explanation demonstrates why it is useful for this problem.
+
+Do not ask for justification if they have already provided it.
+
+#### Approach evaluation
+
+Candidate establishes an approach
+        ↓
+Do we understand what they actually intend to implement?
+        │
+        ├─ no → develop/clarify it first
+        │
+        └─ yes
+             ↓
+Would it actually solve the problem?
+        │
+        ├─ clearly no → push on the correctness issue
+        │
+        └─ yes / plausibly yes
+             ↓
+Is it viable under the stated constraints?
+        │
+        ├─ clearly no → push on complexity/feasibility
+        │
+        └─ yes
+             ↓
+Is there an important unresolved issue that could
+break the implementation?
+        │
+        ├─ yes → one targeted probe
+        │
+        └─ no
+             ↓
+LET THEM CODE
+
+Notice what is not in that gate:
+
+Is this the optimal solution?
+Is this exactly the expected solution?
+Did they use the intended data structure?
+
+Those should not be requirements for getting to coding.
