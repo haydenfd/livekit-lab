@@ -11,7 +11,7 @@ class ConclusionAgent(Agent):
 
     async def on_enter(self) -> None:
         await self.session.say(
-            "We're done for now. Let's call it.",
+            "We're done for now",
             allow_interruptions=False,
         )
         self.session.shutdown()
