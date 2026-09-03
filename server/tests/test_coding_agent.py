@@ -6,6 +6,7 @@ from livekit.agents import ChatContext, ChatMessage, StopResponse
 from test_agents import make_question
 
 from agents.coding import CodingAgent
+from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
 from agents.prompts import CODING_PROMPT, MERGE_TWO_SORTED_LISTS_QUESTION
 from interview_question import build_discussion_question_context
@@ -81,6 +82,7 @@ def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     assert {tool.info.name for tool in agent.tools} == {
         "continue_silently",
         "get_current_code",
+        "finish_coding",
     }
     assert agent.allow_interruptions is False
     assert "on_enter" not in CodingAgent.__dict__
@@ -154,6 +156,26 @@ async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error() -
 
     with pytest.raises(ValueError, match="Candidate code is unavailable"):
         await agent.get_current_code.__wrapped__(agent, context)
+
+
+@pytest.mark.asyncio
+async def test_finish_coding_confirms_after_playout_and_hands_off_to_conclusion() -> (
+    None
+):
+    agent = CodingAgent()
+    session = Session()
+    attach(agent, session)
+
+    conclusion = await agent.finish_coding.__wrapped__(agent, None)
+
+    assert isinstance(conclusion, ConclusionAgent)
+    assert session.spoken == [
+        ("Yep, this implementation looks good to go.", {"allow_interruptions": False})
+    ]
+    assert session.events == [
+        "say:Yep, this implementation looks good to go.",
+        "wait:say:Yep, this implementation looks good to go.",
+    ]
 
 
 @pytest.mark.asyncio

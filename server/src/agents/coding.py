@@ -6,6 +6,7 @@ import time
 from livekit import rtc
 from livekit.agents import Agent, ChatContext, RunContext, StopResponse, function_tool
 
+from agents.conclusion import ConclusionAgent
 from agents.prompts.base import build_instructions
 from agents.prompts.coding import build_coding_prompt
 from agents.prompts.questions import MERGE_TWO_SORTED_LISTS_QUESTION
@@ -83,3 +84,13 @@ class CodingAgent(Agent):
             },
         )
         return code
+
+    @function_tool()
+    async def finish_coding(self, context: RunContext[None]) -> ConclusionAgent:
+        """Conclude coding only after get_current_code returned successfully and the full implementation was reviewed as correct."""
+        speech = self.session.say(
+            "Yep, this implementation looks good to go.",
+            allow_interruptions=False,
+        )
+        await speech.wait_for_playout()
+        return ConclusionAgent()
