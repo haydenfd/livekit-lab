@@ -41,6 +41,11 @@ def test_build_agent_session_config_preserves_active_settings(
     assert config["expressive"] is False
     assert config["turn_handling"] == {
         "turn_detection": turn_detector,
+        "endpointing": {
+            "mode": "fixed",
+            "min_delay": 1.2,
+            "max_delay": 2.5,
+        },
         "interruption": {
             "enabled": False,
             "discard_audio_if_uninterruptible": True,
@@ -53,7 +58,9 @@ def test_build_agent_session_config_excludes_inactive_tuning_keys(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(agent_session_config.deepgram, "STT", lambda **_: object())
-    monkeypatch.setattr(agent_session_config.openai.responses, "LLM", lambda **_: object())
+    monkeypatch.setattr(
+        agent_session_config.openai.responses, "LLM", lambda **_: object()
+    )
     monkeypatch.setattr(agent_session_config.deepgram, "TTS", lambda **_: object())
     monkeypatch.setattr(
         agent_session_config.inference, "TurnDetector", lambda: object()
@@ -63,7 +70,11 @@ def test_build_agent_session_config_excludes_inactive_tuning_keys(
     turn_handling = config["turn_handling"]
 
     assert "min_consecutive_speech_delay" not in config
-    assert "endpointing" not in turn_handling
+    assert turn_handling["endpointing"] == {
+        "mode": "fixed",
+        "min_delay": 1.2,
+        "max_delay": 2.5,
+    }
     assert set(turn_handling["interruption"]) == {
         "enabled",
         "discard_audio_if_uninterruptible",

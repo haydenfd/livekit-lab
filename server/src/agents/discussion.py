@@ -4,7 +4,7 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 
 from agents.coding import CodingAgent
 from agents.prompts import (
-    MERGE_TWO_SORTED_LISTS_QUESTION,
+    REVERSE_LINKED_LIST_QUESTION,
     build_discussion_prompt,
     build_instructions,
 )
@@ -17,7 +17,7 @@ class DiscussionAgent(Agent):
     def __init__(
         self,
         *,
-        question: InterviewQuestion = MERGE_TWO_SORTED_LISTS_QUESTION,
+        question: InterviewQuestion = REVERSE_LINKED_LIST_QUESTION,
         chat_ctx: ChatContext | None = None,
     ) -> None:
         super().__init__(

@@ -9,8 +9,8 @@ from agents.prompts.intro import (
     build_intro_opening_instructions,
 )
 from agents.prompts.questions import (
-    MERGE_TWO_SORTED_LISTS_QUESTION,
-    MERGE_TWO_SORTED_LISTS_ROW,
+    REVERSE_LINKED_LIST_QUESTION,
+    REVERSE_LINKED_LIST_ROW,
 )
 
 __all__ = [
@@ -19,8 +19,8 @@ __all__ = [
     "DISCUSSION_PROMPT",
     "INTRO_PROMPT",
     "LEFT_PANEL_LINE",
-    "MERGE_TWO_SORTED_LISTS_QUESTION",
-    "MERGE_TWO_SORTED_LISTS_ROW",
+    "REVERSE_LINKED_LIST_QUESTION",
+    "REVERSE_LINKED_LIST_ROW",
     "build_coding_prompt",
     "build_discussion_prompt",
     "build_instructions",

@@ -264,3 +264,85 @@ Is this exactly the expected solution?
 Did they use the intended data structure?
 
 Those should not be requirements for getting to coding.
+
+
+### CodingAgent
+
+- Dilemma: When and how to respond during coding stage. (1) User might be talking but not coding
+- (2) User might be coding, but not talking. (3) User might be coding while talking, but finish talking before being done with code. 
+- This means that (a) either the bot isn't always supposed to respond, but may need to respond at certain points. Or, responding while they're coding and talking. (b) Confusion around when to get code context. Hypothetically, could happen before each bot turn, but wasteful. 
+- Many potential settings to tune - either pass through, or tuning the delay endpointing to allow for longer timeouts. 
+- RPC for sending code or always having a live copy ready through websocket that sends it on the side. 
+- Dont have a run code option (which would effectively allow you to prompt the bot saying user's done) -- problem is if they say theyre done, it achieves effectively the same thing. in a live flow, they might say yeah this should be the right implementation.
+
+
+
+#### Blockers
+
+- How does CodingAgent intentionally consume a completed user turn without speaking?
+
+That should ideally be:
+
+user turn ends
+→ CodingAgent understands narration
+→ silent/pass
+→ no code RPC
+→ back to listening
+
+Fetching code there buys you nothing.
+
+I’d only fetch code when the semantic intent requires it, like:
+
+“Why is this loop not working?”
+“Does this implementation look right?”
+“I think I’m done.”
+
+Then get_current_code() makes sense.
+
+The second concern you raised is real: what if LiveKit decides the user turn ended, starts processing the agent turn, and the candidate resumes speaking a fraction of a second later?
+
+That is where endpointing + interruption handling come in.
+
+LiveKit’s turn detector controls when it commits the user turn, and endpointing lets you add patience before that happens. Dynamic endpointing can adapt within a configured minimum/maximum delay based on the user’s pause behavior.
+
+So during coding:
+
+“I’m gonna set curr.next here...”
+             ↓
+       brief typing pause
+             ↓
+“...and then advance curr.”
+
+With a more patient endpointing setup, LiveKit has a better chance of treating that as one continuous user turn instead of:
+
+user turn #1
+→ agent starts thinking
+
+user starts speaking again
+→ interruption
+
+But even if it does prematurely commit, you're still protected by LiveKit's interruption behavior. User speech can interrupt the agent while it is generating/speaking, and LiveKit handles truncating the agent turn appropriately.
+
+So I’d think of the safeguards as:
+
+Layer 1: endpointing
+Try not to end their turn too early.
+
+Layer 2: silent/pass behavior
+If the turn really ended but they were narrating, don't speak.
+
+Layer 3: interruptions
+If AlgoVox starts responding and the candidate resumes talking, yield.
+
+That’s actually a pretty robust stack.
+
+One important consequence: don’t disable interruptions in CodingAgent. You want the candidate to be able to resume talking naturally if AlgoVox starts at the wrong moment. LiveKit currently enables interruptions by default and supports adaptive interruption handling where available.
+
+
+## Unresolved items
+Completion intent: define what happens when the candidate clearly says “I’m done” or “this is my final implementation.” My suggestion: fetch current code, review it, and either ask one targeted implementation question or transition onward. No Submit button yet.
+RPC failure behavior: if get_current_code fails, the agent should say something brief like it can’t access the editor right now and continue the interview without pretending it saw the code.
+Code-inspection boundary: make sure the model does not call RPC for generic clarification or narration. This is the main thing to watch in logs.
+Silent-turn purity: verify narration produces no filler text before StopResponse.
+Endpointing later: your talk → type briefly → talk pattern may still split too aggressively. Don’t tune it until you hear the actual failure mode.
+15 KiB limit: fine for LeetCode. No action needed unless real sessions hit it.

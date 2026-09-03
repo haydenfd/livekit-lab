@@ -17,7 +17,7 @@ import { MICROPHONE_CAPTURE_CONSTRAINTS } from '@/lib/microphone-gate';
 const IN_DEVELOPMENT = process.env.NODE_ENV !== 'production';
 
 function AppSetup() {
-  useDebugMode({ enabled: IN_DEVELOPMENT });
+  useDebugMode({ enabled: IN_DEVELOPMENT, logLevel: 'warn' });
   useAgentErrors();
 
   return null;

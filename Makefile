@@ -22,7 +22,7 @@ dev: setup
 		pids=(); \
 		cleanup() { trap - INT TERM EXIT; kill $$pids 2>/dev/null || true; wait $$pids 2>/dev/null || true; }; \
 		trap cleanup INT TERM EXIT; \
-		livekit-server --dev & pids+=($$!); \
-		(sleep 1; cd server; exec lk agent dev --dev) & pids+=($$!); \
+		livekit-server --dev --logging.level warn --logging.pion_level error & pids+=($$!); \
+		(sleep 1; cd server; exec lk agent dev --dev --log-level WARN) & pids+=($$!); \
 		(sleep 2; cd web; exec npm run dev) & pids+=($$!); \
 		wait

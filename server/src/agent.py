@@ -6,7 +6,7 @@ from livekit.agents import AgentServer, JobContext, cli
 
 from agent_session import create_agent_session
 from agents.intro import IntroAgent
-from agents.prompts import MERGE_TWO_SORTED_LISTS_QUESTION
+from agents.prompts import REVERSE_LINKED_LIST_QUESTION
 from audio import create_room_options
 from config.env import load_environment
 from interview_context import InterviewContext
@@ -32,7 +32,7 @@ async def my_agent(ctx: JobContext):
     agent_session = create_agent_session(interview_context)
     TranscriptionService().register(ctx, agent_session)
 
-    question = MERGE_TWO_SORTED_LISTS_QUESTION
+    question = REVERSE_LINKED_LIST_QUESTION
     logger.debug(
         "Intro question context:\n%s",
         build_intro_question_context(question),

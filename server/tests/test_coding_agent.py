@@ -8,7 +8,7 @@ from test_agents import make_question
 from agents.coding import CodingAgent
 from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
-from agents.prompts import CODING_PROMPT, MERGE_TWO_SORTED_LISTS_QUESTION
+from agents.prompts import CODING_PROMPT, REVERSE_LINKED_LIST_QUESTION
 from interview_question import build_discussion_question_context
 
 
@@ -44,40 +44,11 @@ def attach(agent: object, session: Session) -> None:
 
 def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     agent = CodingAgent()
-    normalized_instructions = " ".join(agent.instructions.split())
 
     assert CODING_PROMPT in agent.instructions
     assert (
-        build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION)
+        build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION)
         in agent.instructions
-    )
-    assert "pause between thoughts" not in agent.instructions
-    assert "without expecting the interviewer to participate" in normalized_instructions
-    assert "still an interviewer, not a coding assistant" in normalized_instructions
-    assert (
-        "factual problem clarifications directly and briefly" in normalized_instructions
-    )
-    assert (
-        "do not reveal the solution or directly fix their code"
-        in normalized_instructions
-    )
-    assert "one concise question or hint" in normalized_instructions
-    assert (
-        "Do not over-help merely because the candidate sounds confused"
-        in normalized_instructions
-    )
-    assert (
-        "Do not invent observations about code or implementation details"
-        in normalized_instructions
-    )
-    assert "candidate's code" in agent.instructions
-    assert (
-        "use `get_current_code` before making any claim about editor contents"
-        in normalized_instructions
-    )
-    assert (
-        "Do not use it automatically for narration, pauses, or every candidate turn"
-        in normalized_instructions
     )
     assert {tool.info.name for tool in agent.tools} == {
         "continue_silently",

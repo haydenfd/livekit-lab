@@ -18,14 +18,11 @@ def build_agent_session_config() -> dict[str, object]:
         "tts": deepgram.TTS(model="aura-2-asteria-en"),
         "turn_handling": TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
-            # Endpointing controls when the agent treats a pause as the end of
-            # a user turn. Leave this unset to preserve the SDK defaults.
-            # endpointing={
-            #     "mode": "fixed",  # Or "dynamic" to adapt from pauses.
-            #     "min_delay": 0.5,  # Shortest pause before ending a turn.
-            #     "max_delay": 3.0,  # Longest wait before ending a turn.
-            #     "alpha": 0.9,  # Dynamic endpointing's history weighting.
-            # },
+            endpointing={
+                "mode": "fixed",
+                "min_delay": 1.2,
+                "max_delay": 2.5,
+            },
             interruption={
                 # Keep every reply playing until it is complete. Incoming speech
                 # is discarded while the agent is speaking, then accepted on the

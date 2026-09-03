@@ -9,7 +9,7 @@ from livekit.agents import Agent, ChatContext, RunContext, StopResponse, functio
 from agents.conclusion import ConclusionAgent
 from agents.prompts.base import build_instructions
 from agents.prompts.coding import build_coding_prompt
-from agents.prompts.questions import MERGE_TWO_SORTED_LISTS_QUESTION
+from agents.prompts.questions import REVERSE_LINKED_LIST_QUESTION
 from interview_question import InterviewQuestion
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class CodingAgent(Agent):
     def __init__(
         self,
         *,
-        question: InterviewQuestion = MERGE_TWO_SORTED_LISTS_QUESTION,
+        question: InterviewQuestion = REVERSE_LINKED_LIST_QUESTION,
         chat_ctx: ChatContext | None = None,
     ) -> None:
         super().__init__(

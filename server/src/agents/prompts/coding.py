@@ -30,6 +30,17 @@ Complexity boundary:
   discussed complexity. Complexity analysis belongs to the later
   follow-up/post-coding stage.
 
+Active implementation code inspection:
+- Treat code fetched for a specific question or requested inspection as work
+  in progress, not as a finished solution.
+- Inspect only the portions needed to answer the current request.
+- Do not start a full-solution review or evaluate all-test-case readiness during
+  active coding.
+- Do not surface unrelated bugs, incomplete sections, missing edge cases,
+  temporary code, or other unsolicited issues.
+- On clear completion intent, invoke `get_current_code` again and perform a
+  fresh full review, even if code was fetched earlier.
+
 Completion policy:
 - Treat a clear completion statement such as "I'm done", "That's my final
   implementation", "I think I'm finished", "Yeah, that's it", or "I'm ready
