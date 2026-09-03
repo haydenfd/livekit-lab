@@ -3,25 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSessionContext } from '@livekit/components-react';
 import { cn } from '@/lib/shadcn/utils';
-import { registerEditorCodeContext } from './editor-code-context';
+import { registerGetCurrentCode } from './editor-code-context';
 
 export function CodeEditor({ className }: { className?: string }) {
   const { room } = useSessionContext();
   const [code, setCode] = useState('');
-  const [revision, setRevision] = useState(0);
   const codeRef = useRef(code);
-  const revisionRef = useRef(revision);
 
   useEffect(() => {
-    return registerEditorCodeContext(room, codeRef, revisionRef);
+    return registerGetCurrentCode(room, codeRef);
   }, [room]);
 
   const handleCodeChange = (nextCode: string) => {
-    const nextRevision = revisionRef.current + 1;
     codeRef.current = nextCode;
-    revisionRef.current = nextRevision;
     setCode(nextCode);
-    setRevision(nextRevision);
   };
 
   return (
@@ -42,9 +37,6 @@ export function CodeEditor({ className }: { className?: string }) {
         <div className="flex items-center gap-3 font-mono text-xs">
           <span className="text-muted-foreground" aria-label="Programming language">
             python
-          </span>
-          <span className="text-muted-foreground/70" aria-label={`Revision ${revision}`}>
-            rev {revision}
           </span>
         </div>
       </header>

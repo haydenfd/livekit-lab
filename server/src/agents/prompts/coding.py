@@ -32,9 +32,11 @@ Do not acknowledge narration with filler such as "okay", "mhm", "got it",
 Prefer silence over unnecessary interviewer speech.
 
 Base each decision only on the latest spoken turn, existing conversation
-history, these instructions, and the supplied interview question. You cannot
-see the candidate's code or editor. Do not request, inspect, or claim knowledge
-of either.
+history, these instructions, and the supplied interview question. For an
+implementation-specific question or a direct request to inspect their code, use
+`get_current_code` before making any claim about editor contents. Do not use it
+automatically for narration, pauses, or every candidate turn. Do not claim
+knowledge of the candidate's code unless that tool returned successfully.
 """
 
 

@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from livekit import rtc
 from livekit.agents import ChatContext, ChatMessage, StopResponse
 from test_agents import make_question
 
@@ -40,25 +41,47 @@ def attach(agent: object, session: Session) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
 
-def test_coding_agent_has_exact_prompt_context_and_one_tool() -> None:
+def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     agent = CodingAgent()
     normalized_instructions = " ".join(agent.instructions.split())
 
     assert CODING_PROMPT in agent.instructions
-    assert build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION) in agent.instructions
+    assert (
+        build_discussion_question_context(MERGE_TWO_SORTED_LISTS_QUESTION)
+        in agent.instructions
+    )
     assert "pause between thoughts" not in agent.instructions
     assert "without expecting the interviewer to participate" in normalized_instructions
     assert "still an interviewer, not a coding assistant" in normalized_instructions
-    assert "factual problem clarifications directly and briefly" in normalized_instructions
-    assert "do not reveal the solution or directly fix their code" in normalized_instructions
+    assert (
+        "factual problem clarifications directly and briefly" in normalized_instructions
+    )
+    assert (
+        "do not reveal the solution or directly fix their code"
+        in normalized_instructions
+    )
     assert "one concise question or hint" in normalized_instructions
-    assert "Do not over-help merely because the candidate sounds confused" in normalized_instructions
-    assert "Do not invent observations about code or implementation details" in normalized_instructions
+    assert (
+        "Do not over-help merely because the candidate sounds confused"
+        in normalized_instructions
+    )
+    assert (
+        "Do not invent observations about code or implementation details"
+        in normalized_instructions
+    )
     assert "candidate's code" in agent.instructions
-    assert "cannot see the candidate's code or editor" in normalized_instructions
-    assert "Do not request, inspect, or claim knowledge of either" in normalized_instructions
-    assert len(agent.tools) == 1
-    assert agent.tools[0].info.name == "continue_silently"
+    assert (
+        "use `get_current_code` before making any claim about editor contents"
+        in normalized_instructions
+    )
+    assert (
+        "Do not use it automatically for narration, pauses, or every candidate turn"
+        in normalized_instructions
+    )
+    assert {tool.info.name for tool in agent.tools} == {
+        "continue_silently",
+        "get_current_code",
+    }
     assert agent.allow_interruptions is False
     assert "on_enter" not in CodingAgent.__dict__
 
@@ -78,7 +101,65 @@ async def test_continue_silently_stops_without_speech() -> None:
 
 
 @pytest.mark.asyncio
-async def test_start_coding_speaks_and_hands_off_with_question_and_copied_context() -> None:
+async def test_get_current_code_requests_the_single_standard_participant() -> None:
+    agent = CodingAgent()
+
+    async def perform_rpc(**kwargs: object) -> str:
+        assert kwargs == {
+            "destination_identity": "candidate",
+            "method": "editor.get_current_code",
+            "payload": "",
+            "response_timeout": 3.0,
+        }
+        return "def solve():\n    return 42"
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room))
+    )
+
+    assert (
+        await agent.get_current_code.__wrapped__(agent, context)
+        == "def solve():\n    return 42"
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error() -> None:
+    agent = CodingAgent()
+
+    async def perform_rpc(**_: object) -> str:
+        raise rtc.RpcError(rtc.RpcError.ErrorCode.RESPONSE_TIMEOUT, "timed out")
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room))
+    )
+
+    with pytest.raises(ValueError, match="Candidate code is unavailable"):
+        await agent.get_current_code.__wrapped__(agent, context)
+
+
+@pytest.mark.asyncio
+async def test_start_coding_speaks_and_hands_off_with_question_and_copied_context() -> (
+    None
+):
     question = make_question()
     chat_ctx = ChatContext(
         items=[
@@ -97,7 +178,10 @@ async def test_start_coding_speaks_and_hands_off_with_question_and_copied_contex
         "wait:say:Go ahead and start implementing your approach.",
     ]
     assert session.spoken == [
-        ("Go ahead and start implementing your approach.", {"allow_interruptions": False})
+        (
+            "Go ahead and start implementing your approach.",
+            {"allow_interruptions": False},
+        )
     ]
     assert isinstance(coding, CodingAgent)
     assert coding._question is question
