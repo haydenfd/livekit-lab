@@ -36,6 +36,10 @@ where = ["src"]
 "agents.prompts" = ["*.json"]
 
 [tool.pytest.ini_options]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: paid semantic LiveKit/OpenAI evaluation (opt in explicitly)",
+]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
