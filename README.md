@@ -5,28 +5,87 @@ AlgoVox is a voice interview app with a Python LiveKit agent and a Next.js brows
 ```text
 web/       Next.js voice interface
 server/    Python agent using OpenAI GPT-5.6 and Deepgram STT/TTS
-.env       Shared local credentials
+.env       Local development credentials; never commit this file
 ```
 
-## Local setup
+## Current interview flow
 
-Keep provider credentials in the repository root `.env`:
+Read [the implementation snapshot](docs/interview-flow.md) for the current
+node-by-node interview lifecycle, editor-code access, state handoffs, and known
+incomplete areas.
+
+## Deploy to LiveKit Cloud
+
+This project uses LiveKit Cloud for rooms, agent dispatch, and production agent
+hosting.
+
+1. Create or select a project in [LiveKit Cloud](https://cloud.livekit.io), then
+   install the [LiveKit CLI](https://docs.livekit.io/intro/basics/cli/).
+2. Authenticate the CLI and set the deployment project:
+
+```bash
+lk cloud auth
+lk project set-default "your-project-name"
+```
+
+3. Copy `.env.example` to `.env` in the repository root and add your Cloud and
+   provider credentials:
 
 ```env
-LIVEKIT_URL=ws://127.0.0.1:7880
-LIVEKIT_API_KEY=devkey
-LIVEKIT_API_SECRET=secret
+LIVEKIT_URL=wss://your-project-subdomain.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
 OPENAI_API_KEY=your_openai_key
 DEEPGRAM_API_KEY=your_deepgram_key
 ```
 
-Start the local LiveKit server, Python agent, and web UI together:
+4. Create the Cloud deployment from the agent directory. This registers the
+   agent, stores its identifier in `server/livekit.toml`, uploads the Docker
+   build, and securely imports provider secrets from the root `.env`.
 
 ```bash
-make dev
+(cd server && lk agent create --secrets-file ../.env)
 ```
 
-The first run installs Python and web dependencies. Local LiveKit development defaults to `ws://127.0.0.1:7880` with `devkey` / `secret` if those values are not already in `.env`. Press `Ctrl-C` once to stop all three processes. Open [http://localhost:3000](http://localhost:3000) and click **Start interview**.
+5. Verify the deployed agent, then tail its logs:
+
+```bash
+(cd server && lk agent status)
+(cd server && lk agent logs)
+```
+
+After the first deployment, publish a new version with:
+
+```bash
+(cd server && lk agent deploy)
+```
+
+LiveKit Cloud supplies `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and
+`LIVEKIT_API_SECRET` to deployed agents. Do not add those three values as agent
+secrets; the CLI imports the provider keys from `.env` instead.
+
+## Develop against LiveKit Cloud
+
+Install the project dependencies once:
+
+```bash
+uv sync --directory server
+pnpm --dir web install
+```
+
+Start the agent worker and web app in separate terminals:
+
+```bash
+# Terminal 1
+cd server && lk agent dev
+
+# Terminal 2
+cd web && pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and click **Start interview**.
+The browser and worker connect to the same LiveKit Cloud project using the root
+`.env` file. Press `Ctrl-C` in each terminal to stop development.
 
 The browser receives a short-lived participant token from `web/app/api/token/route.ts`; the LiveKit API secret never goes to the browser.
 
@@ -36,11 +95,8 @@ The browser receives a short-lived participant token from `web/app/api/token/rou
 uv run --directory server python src/agent.py console --text
 ```
 
-Console mode does not require a LiveKit server. The browser UI does, because browsers need a WebRTC signaling and media server.
-
-## LiveKit Cloud later
-
-Replace the local LiveKit values with a Cloud project’s values, authenticate with `lk cloud auth`, and run the agent in `dev` mode. The same web UI can then connect to Cloud instead of the local server.
+Console mode exercises the agent without joining a Cloud room. Use `lk agent dev`
+when testing browser-based interviews.
 
 ## Interview session metadata
 
@@ -67,7 +123,7 @@ only the token-route origin later.
 
 - Browser clicks start() interview, which triggers a POST /api/token. useSession(..., { agentName: "my-agent" }) supplies agent dispatch config
 - Generates a 15-minute signed join token and a unique name
-- Browser connects to ws://127.0.0.1:7880 with that token. 
+- Browser connects to the configured `LIVEKIT_URL` with that token.
 
 
 ### Agent Session

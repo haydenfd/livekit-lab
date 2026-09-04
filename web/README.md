@@ -1,9 +1,8 @@
-# Agent Starter for React
+# AlgoVox web client
 
-This is a starter template for [LiveKit Agents](https://docs.livekit.io/agents) that provides a simple voice interface using [Agents UI](https://livekit.io/ui) components and [LiveKit JavaScript SDK](https://github.com/livekit/client-sdk-js). It supports [voice](https://docs.livekit.io/agents/start/voice-ai), [transcriptions](https://docs.livekit.io/agents/build/text/), and [virtual avatars](https://docs.livekit.io/agents/integrations/avatar).
-
-Also available for:
-[Android](https://github.com/livekit-examples/agent-starter-android) • [Flutter](https://github.com/livekit-examples/agent-starter-flutter) • [Swift](https://github.com/livekit-examples/agent-starter-swift) • [React Native](https://github.com/livekit-examples/agent-starter-react-native)
+The Next.js browser interface for the AlgoVox LiveKit Cloud agent. It joins a
+LiveKit Cloud room with a short-lived token created by `app/api/token/route.ts`;
+the API secret remains server-side.
 
 <picture>
   <source srcset="./.github/assets/readme-hero-dark.webp" media="(prefers-color-scheme: dark)">
@@ -81,24 +80,25 @@ pnpm shadcn:install
 pnpm dlx shadcn@latest add @agents-ui/{component-name-a} @agents-ui/{component-name-b}
 ```
 
-## Getting started
+## Develop against LiveKit Cloud
 
-Run the following command to automatically clone this template.
+1. Copy the repository-root `.env.example` to `.env` and set the Cloud URL, API
+   key, API secret, and provider keys.
+2. Start the Cloud-connected agent worker from `server/`:
 
 ```bash
-lk app create --template agent-starter-react
+cd ../server && lk agent dev
 ```
 
-Then run the app with:
+3. Run the web client:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-And open http://localhost:3000 in your browser.
-
-You'll also need an agent to speak with. Try our starter agent for [Python](https://github.com/livekit-examples/agent-starter-python), [Node.js](https://github.com/livekit-examples/agent-starter-node), or [create your own from scratch](https://docs.livekit.io/agents/start/voice-ai/).
+Open http://localhost:3000 and start an interview. The worker and browser must
+use credentials for the same LiveKit Cloud project.
 
 ## Configuration
 
@@ -172,7 +172,7 @@ You'll also need to configure your LiveKit credentials in the repository root `.
 ```env
 LIVEKIT_API_KEY=your_livekit_api_key
 LIVEKIT_API_SECRET=your_livekit_api_secret
-LIVEKIT_URL=https://your-livekit-server-url
+LIVEKIT_URL=wss://your-project-subdomain.livekit.cloud
 
 # Agent dispatch (https://docs.livekit.io/agents/server/agent-dispatch)
 # Leave AGENT_NAME blank to enable automatic dispatch
@@ -180,7 +180,9 @@ LIVEKIT_URL=https://your-livekit-server-url
 AGENT_NAME=
 ```
 
-These are required for the voice agent functionality to work with your LiveKit project.
+These are required for the voice agent functionality to work with your LiveKit
+Cloud project. The deployed agent receives the three `LIVEKIT_*` values from
+LiveKit Cloud; keep provider keys in Cloud-managed agent secrets.
 
 ## Contributing
 
