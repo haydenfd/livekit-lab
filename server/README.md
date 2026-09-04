@@ -95,6 +95,50 @@ lk agent status
 lk agent logs
 ```
 
+In production, use the `start` command:
+
+```console
+uv run python src/agent.py start
+```
+
+### Start directly in the coding stage
+
+For faster local iteration, set this in the repository-root `.env`:
+
+```env
+INTERVIEW_START_STAGE=coding
+```
+
+This server-side, process-wide setting skips the intro and discussion stages. It
+starts the reverse-linked-list coding stage with a known iterative approach and
+speaks a deterministic approval before implementation begins. Restart the server
+after changing it. No frontend control is added.
+
+Restore the full interview flow with:
+
+```env
+INTERVIEW_START_STAGE=intro
+```
+
+`intro` is the default when the variable is omitted. Any other value stops server
+startup with an error that lists the accepted values.
+
+## Frontend & Telephony
+
+Get started quickly with our pre-built frontend starter apps, or add telephony support:
+
+| Platform | Link | Description |
+|----------|----------|-------------|
+| **Web** | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react) | Web voice AI assistant with React & Next.js |
+| **iOS/macOS** | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift) | Native iOS, macOS, and visionOS voice AI assistant |
+| **Flutter** | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter) | Cross-platform voice AI assistant app |
+| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Native mobile app with React Native & Expo |
+| **Android** | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android) | Native Android app with Kotlin & Jetpack Compose |
+| **Web Embed** | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed) | Voice AI widget for any website |
+| **Telephony** | [Documentation](https://docs.livekit.io/telephony/) | Add inbound or outbound calling to your agent |
+
+For advanced customization, see the [complete frontend guide](https://docs.livekit.io/frontends/).
+
 ## Tests and evals
 
 This project includes a complete suite of evals, based on the LiveKit Agents [testing & evaluation framework](https://docs.livekit.io/agents/start/testing/). To run them, use `pytest`.

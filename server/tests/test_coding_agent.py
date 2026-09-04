@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -6,10 +7,12 @@ from livekit import rtc
 from livekit.agents import ChatContext, ChatMessage, StopResponse
 from test_agents import make_question
 
+import agents.coding as coding_module
 from agents.coding import CodingAgent
-from agents.conclusion import ConclusionAgent
 from agents.discussion import DiscussionAgent
 from agents.prompts import CODING_PROMPT, REVERSE_LINKED_LIST_QUESTION
+from code_submission import CodeSubmission
+from interview_context import InterviewContext
 from interview_question import build_discussion_question_context
 
 
@@ -39,6 +42,21 @@ class Session:
         return Speech(self.events, "generate_reply")
 
 
+class RecordingStore:
+    def __init__(self, events: list[str], error: Exception | None = None) -> None:
+        self.events = events
+        self.error = error
+        self.submissions: list[CodeSubmission] = []
+
+    async def save(self, submission: CodeSubmission) -> Path:
+        self.events.append("store:start")
+        if self.error is not None:
+            raise self.error
+        self.submissions.append(submission)
+        self.events.append("store:complete")
+        return Path("submission.json")
+
+
 def attach(agent: object, session: Session) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
@@ -54,7 +72,7 @@ def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     assert {tool.info.name for tool in agent.tools} == {
         "continue_silently",
         "get_current_code",
-        "finish_coding",
+        "submit_code",
     }
     assert agent.allow_interruptions is False
     assert "on_enter" not in CodingAgent.__dict__
@@ -66,6 +84,8 @@ def test_coding_prompt_requires_fresh_code_for_current_code_judgments() -> None:
     assert "likely to pass tests" in CODING_PROMPT
     assert "Why isn't my loop working?" in CODING_PROMPT
     assert "I think this is my\n  implementation" in CODING_PROMPT
+    assert "submit_code" in CODING_PROMPT
+    assert "finish_coding" not in CODING_PROMPT
 
 
 @pytest.mark.asyncio
@@ -167,23 +187,165 @@ async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error(
 
 
 @pytest.mark.asyncio
-async def test_finish_coding_confirms_after_playout_and_hands_off_to_conclusion() -> (
-    None
-):
-    agent = CodingAgent()
+async def test_submit_code_persists_fresh_rpc_result_before_acknowledgment_and_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+    rpc_results = iter(["stale review snapshot", "final editor contents"])
+
+    async def perform_rpc(**_: object) -> str:
+        events.append("rpc")
+        return next(rpc_results)
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room)),
+        userdata=InterviewContext(
+            programming_language="python",
+            job_id="job-123",
+            room_name="interview-room",
+        ),
+    )
+    store = RecordingStore(events)
+    agent = CodingAgent(question=make_question(), submission_store=store)
     session = Session()
+    session.events = events
     attach(agent, session)
 
-    conclusion = await agent.finish_coding.__wrapped__(agent, None)
+    await agent.get_current_code.__wrapped__(agent, context)
 
-    assert isinstance(conclusion, ConclusionAgent)
-    assert session.spoken == [
-        ("Yep, this implementation looks good to go.", {"allow_interruptions": False})
+    sentinel = object()
+
+    def construct_conclusion() -> object:
+        events.append("conclusion")
+        return sentinel
+
+    monkeypatch.setattr(coding_module, "ConclusionAgent", construct_conclusion)
+
+    conclusion = await agent.submit_code.__wrapped__(agent, context)
+
+    assert conclusion is sentinel
+    assert events == [
+        "rpc",
+        "rpc",
+        "store:start",
+        "store:complete",
+        "generate_reply",
+        "wait:generate_reply",
+        "conclusion",
     ]
-    assert session.events == [
-        "say:Yep, this implementation looks good to go.",
-        "wait:say:Yep, this implementation looks good to go.",
+    assert len(store.submissions) == 1
+    assert store.submissions[0].code == "final editor contents"
+    assert store.submissions[0].job_id == "job-123"
+    assert store.submissions[0].room_name == "interview-room"
+    assert store.submissions[0].question_slug == "injected-question"
+    assert store.submissions[0].question_title == "Injected Question"
+    assert store.submissions[0].programming_language == "python"
+    assert store.submissions[0].submitted_at.tzinfo is not None
+    assert session.spoken == []
+    assert session.generated == [
+        (
+            "Briefly and naturally acknowledge that the implementation is accepted. "
+            "Do not mention tools, storage, logs, persistence, or internal systems.",
+            {"tool_choice": "none", "allow_interruptions": False},
+        )
     ]
+
+
+@pytest.mark.asyncio
+async def test_submit_code_retrieval_failure_does_not_store_acknowledge_or_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+
+    async def perform_rpc(**_: object) -> str:
+        events.append("rpc")
+        raise rtc.RpcError(rtc.RpcError.ErrorCode.RESPONSE_TIMEOUT, "timed out")
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room)),
+        userdata=InterviewContext(),
+    )
+    store = RecordingStore(events)
+    agent = CodingAgent(submission_store=store)
+    session = Session()
+    session.events = events
+    attach(agent, session)
+    monkeypatch.setattr(
+        coding_module,
+        "ConclusionAgent",
+        lambda: pytest.fail("retrieval failure must not construct ConclusionAgent"),
+    )
+
+    with pytest.raises(ValueError, match="Candidate code is unavailable"):
+        await agent.submit_code.__wrapped__(agent, context)
+
+    assert events == ["rpc"]
+    assert store.submissions == []
+    assert session.generated == []
+
+
+@pytest.mark.asyncio
+async def test_submit_code_storage_failure_is_logged_and_sanitized_without_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    events: list[str] = []
+
+    async def perform_rpc(**_: object) -> str:
+        events.append("rpc")
+        return "final code"
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room)),
+        userdata=InterviewContext(),
+    )
+    store = RecordingStore(events, error=OSError("private filesystem details"))
+    agent = CodingAgent(submission_store=store)
+    session = Session()
+    session.events = events
+    attach(agent, session)
+    monkeypatch.setattr(
+        coding_module,
+        "ConclusionAgent",
+        lambda: pytest.fail("storage failure must not construct ConclusionAgent"),
+    )
+
+    with (
+        caplog.at_level(logging.ERROR, logger="agents.coding"),
+        pytest.raises(ValueError, match="Code submission could not be saved"),
+    ):
+        await agent.submit_code.__wrapped__(agent, context)
+
+    assert events == ["rpc", "store:start"]
+    assert session.generated == []
+    assert "Code submission storage failed" in caplog.messages
 
 
 @pytest.mark.asyncio

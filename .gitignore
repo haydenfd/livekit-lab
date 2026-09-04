@@ -12,6 +12,7 @@ KMS
 .ruff_cache
 .pnpm-store/
 server/logs/
+/logs/
 
 # OpenAI Codex
 .codex/config.local.toml

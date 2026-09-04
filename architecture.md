@@ -1,6 +1,6 @@
-# Proposed LiveKit Interview Architecture
+# LiveKit Interview Architecture
 
-> **Design reference only.** This architecture is planned functionality and is not implemented yet. The exact stage graph may change as the interview flow is refined.
+> **Current stage reference.** The primary flow currently transitions directly from `CodingAgent` to `ConclusionAgent`. `FollowUpAgent` remains future work.
 
 ## Core model
 
@@ -25,14 +25,10 @@
                          |
                       handoff
                          v
-                  FollowupAgent
-                         |
-                      handoff
-                         v
                  ConclusionAgent
 ```
 
-These names and the exact graph are placeholders and may change.
+After implementation verification, `CodingAgent` establishes baseline time and space complexity, persists the accepted code, and only then hands off to `ConclusionAgent`.
 
 ## Why separate stage agents
 
@@ -40,8 +36,8 @@ The primary goal is prompt isolation. Each interview phase should have a narrow,
 
 - `IntroAgent`: intro/problem-presentation behavior.
 - `DiscussionAgent`: approach/reasoning behavior.
-- `CodingAgent`: implementation-stage behavior.
-- `FollowupAgent`: follow-up/complexity behavior.
+- `CodingAgent`: implementation, correctness/debugging, baseline time and space complexity, and primary code submission.
+- `FollowUpAgent` (future): deeper optimization, alternatives, tradeoffs, and modified-requirement questions.
 - `ConclusionAgent`: interview-closing behavior.
 
 Each agent should expose only the tools/transitions relevant to its stage. Available tools can naturally represent outgoing graph edges; deterministic prerequisite validation can be added later.
@@ -53,16 +49,18 @@ IntroAgent
 
 DiscussionAgent
   instructions = DISCUSSION_PROMPT
-  tools = [move_to_coding]
+  tools = [start_coding]
 
 CodingAgent
   instructions = CODING_PROMPT
-  tools = [move_to_followup]
+  tools = [continue_silently, get_current_code, submit_code]
 
-FollowupAgent
-  instructions = FOLLOWUP_PROMPT
-  tools = [move_to_conclusion]
+ConclusionAgent
+  instructions = CONCLUSION_PROMPT
+  tools = []
 ```
+
+`submit_code` is available throughout the coding stage but its prompt and tool contract permit invocation only after the implementation is acceptable and the candidate has adequately established both baseline complexities. Conversation history lets CodingAgent recognize a correct complexity explanation given earlier instead of repeating the question. The tool then retrieves the canonical editor contents and persists them before constructing `ConclusionAgent`.
 
 ## Agent handoffs
 
@@ -88,11 +86,7 @@ We do not need one mutable `Agent` instance for the entire interview.
 Switching agents does not lose the candidate's previous conversation. When handing off, copy the previous agent's `ChatContext` into the next agent while excluding the previous stage's instructions.
 
 ```python
-return CodingAgent(
-    chat_ctx=self.chat_ctx.copy(
-        exclude_instructions=True
-    )
-)
+return CodingAgent(chat_ctx=self.chat_ctx.copy(exclude_instructions=True))
 ```
 
 The next stage receives:
@@ -159,13 +153,9 @@ A graph transition should occur because the interview phase changed, not because
 
 ## Current non-goals
 
-Do not implement any of this as part of this architecture document.
-
-- Do not modify the LiveKit agent implementation.
-- Do not create the stage `Agent` classes yet.
+- Do not implement `FollowUpAgent` yet.
+- Do not move baseline complexity ownership out of `CodingAgent`.
 - Do not add LangGraph.
-- Do not use `TaskGroup` as the main interview graph.
 - Do not build post-interview scoring or evaluation into the live interview graph.
-- Do not refactor existing lab code around this architecture yet.
 
-Post-interview candidate evaluation remains separate from the live interviewer. The purpose of this document is only to establish a durable architecture reference for the upcoming LiveKit migration.
+Post-interview candidate evaluation remains separate from the live interviewer. This document is the durable architecture reference for the current interview flow.
