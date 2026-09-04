@@ -114,7 +114,7 @@ class CodingAgent(Agent):
     async def submit_code(
         self, context: RunContext[InterviewContext]
     ) -> ConclusionAgent:
-        """Submit accepted code and conclude only after every completion step succeeds."""
+        """Submit only after the implementation is acceptable and baseline time and space complexity are adequately established."""
         code = await get_current_editor_code(context)
         interview = context.userdata
         submission = CodeSubmission(
