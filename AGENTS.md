@@ -48,4 +48,5 @@ Important: When modifying core agent behavior such as instructions, tool descrip
 
 ## LiveKit CLI
 
-Beyond documentation access, the LiveKit CLI (`lk`) supports other tasks such as managing SIP trunks for telephony-based agents. Run `lk --help` to explore available commands.
+Beyond documentation access, the LiveKit CLI (`lk`) manages Cloud projects and
+agent deployments. Run `lk --help` to explore available commands.

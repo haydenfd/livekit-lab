@@ -18,7 +18,8 @@ The starter project includes:
 - Deep session insights from LiveKit [Agent Observability](https://docs.livekit.io/deploy/observability/)
 - A Dockerfile ready for [production deployment to LiveKit Cloud](https://docs.livekit.io/deploy/agents/)
 
-This starter app is compatible with any [custom web/mobile frontend](https://docs.livekit.io/frontends/) or [telephony](https://docs.livekit.io/telephony/).
+This app is deployed to LiveKit Cloud and connects to the repository's Next.js
+web frontend.
 
 ## Using coding agents
 
@@ -55,101 +56,44 @@ See the [Using coding agents](https://docs.livekit.io/intro/coding-agents/) guid
 
 The project includes a complete [AGENTS.md](AGENTS.md) file for these assistants. You can modify this file to suit your needs. To learn more about this file, see [https://agents.md](https://agents.md).
 
-## Dev Setup
+## Run locally against LiveKit Cloud
 
-Create a project from this template with the LiveKit CLI (recommended):
-
-```bash
-lk cloud auth
-lk agent init my-agent --template agent-starter-python
-```
-
-The CLI clones the template and configures your environment. Then follow the rest of this guide from [Run the agent](#run-the-agent).
-
-<details>
-<summary>Alternative: Manual setup without the CLI</summary>
-
-Clone the repository and install dependencies to a virtual environment:
+The repository root `.env` must contain the Cloud project credentials and
+provider keys. Install dependencies, then run the worker:
 
 ```console
-cd agent-starter-python
 uv sync
+lk agent dev
 ```
 
-Copy `.env.example` to the repository root `.env` and fill in the provider and LiveKit credentials:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-- `OPENAI_API_KEY`
-- `DEEPGRAM_API_KEY`
-
-For a local console test, only `OPENAI_API_KEY` and `DEEPGRAM_API_KEY` are needed. LiveKit credentials are not required because console mode simulates a session locally without connecting to LiveKit Cloud.
-
-Start with text input:
+Use a separate terminal for the Next.js frontend:
 
 ```console
-uv run python src/agent.py console --text
+cd ../web && pnpm dev
 ```
 
-Start with your microphone and speakers:
+## Deploy to LiveKit Cloud
 
-```console
-uv run python src/agent.py console
-```
-
-To run the agent as a LiveKit worker for a frontend later, authenticate the LiveKit CLI and write the project credentials:
+Authenticate once, select the Cloud project, and create the deployment from
+this directory:
 
 ```console
 lk cloud auth
-lk app env -w
-uv run python src/agent.py dev
+lk project set-default "your-project-name"
+lk agent create --secrets-file ../.env
 ```
 
-You can load the LiveKit environment automatically using the [LiveKit CLI](https://docs.livekit.io/intro/basics/cli/):
+The command creates `livekit.toml`, uploads this directory using the included
+`Dockerfile`, and stores provider credentials as Cloud-managed secrets. LiveKit
+Cloud injects the LiveKit connection credentials automatically.
 
-```bash
-lk cloud auth
-lk app env --write --destination ../.env
-```
-
-</details>
-
-## Run the agent
-
-Run this command to speak to your agent directly in your terminal:
+Deploy later changes with:
 
 ```console
-uv run python src/agent.py console
+lk agent deploy
+lk agent status
+lk agent logs
 ```
-
-To run the agent for use with a frontend or telephony, use the `dev` command:
-
-```console
-uv run python src/agent.py dev
-```
-
-In production, use the `start` command:
-
-```console
-uv run python src/agent.py start
-```
-
-## Frontend & Telephony
-
-Get started quickly with our pre-built frontend starter apps, or add telephony support:
-
-| Platform | Link | Description |
-|----------|----------|-------------|
-| **Web** | [`livekit-examples/agent-starter-react`](https://github.com/livekit-examples/agent-starter-react) | Web voice AI assistant with React & Next.js |
-| **iOS/macOS** | [`livekit-examples/agent-starter-swift`](https://github.com/livekit-examples/agent-starter-swift) | Native iOS, macOS, and visionOS voice AI assistant |
-| **Flutter** | [`livekit-examples/agent-starter-flutter`](https://github.com/livekit-examples/agent-starter-flutter) | Cross-platform voice AI assistant app |
-| **React Native** | [`livekit-examples/voice-assistant-react-native`](https://github.com/livekit-examples/voice-assistant-react-native) | Native mobile app with React Native & Expo |
-| **Android** | [`livekit-examples/agent-starter-android`](https://github.com/livekit-examples/agent-starter-android) | Native Android app with Kotlin & Jetpack Compose |
-| **Web Embed** | [`livekit-examples/agent-starter-embed`](https://github.com/livekit-examples/agent-starter-embed) | Voice AI widget for any website |
-| **Telephony** | [Documentation](https://docs.livekit.io/telephony/) | Add inbound or outbound calling to your agent |
-
-For advanced customization, see the [complete frontend guide](https://docs.livekit.io/frontends/).
 
 ## Tests and evals
 
@@ -169,13 +113,10 @@ Once you've started your own project based on this repo, you should:
 
 3. **Add your own repository secrets**: You must [add secrets](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/using-secrets-in-github-actions) for `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` so that the tests can run in CI.
 
-## Deploying to production
+## Production reference
 
-This project is production-ready and includes a working `Dockerfile`. To deploy it to LiveKit Cloud or another environment, see the [deploying to production](https://docs.livekit.io/deploy/agents/) guide.
-
-## Self-hosted LiveKit
-
-You can also self-host LiveKit instead of using LiveKit Cloud. See the [self-hosting](https://docs.livekit.io/transport/self-hosting/local/) guide for more information. If you choose to self-host, you'll need to also use [model plugins](https://docs.livekit.io/agents/models/#plugins) instead of LiveKit Inference and will need to remove the [LiveKit Cloud noise cancellation](https://docs.livekit.io/transport/media/noise-cancellation/) plugin.
+See the [LiveKit Cloud agent deployment guide](https://docs.livekit.io/deploy/agents/)
+for deployment status, logs, rolling releases, and Cloud secret management.
 
 ## License
 

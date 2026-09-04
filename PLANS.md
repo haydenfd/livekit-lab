@@ -73,7 +73,7 @@ await session.start({
 
 For quieter environments, drop the noise cancellation argument from session.start(). The rest of the config still applies.
 
-For SIP participants, swap voice isolation for the telephony-tuned Krisp model: noise_cancellation.BVCTelephony() (Python) or TelephonyBackgroundVoiceCancellation() (Node.js). For multi-speaker rooms, use background noise suppression instead of voice isolation.
+For multi-speaker rooms, use background noise suppression instead of voice isolation.
 All options
 
 The following table lists the options that affect turn-taking, grouped by pipeline stage.
@@ -92,7 +92,7 @@ preemptive_generation.enabled	Preemptive generation	Whether to start LLM generat
 preemptive_generation.preemptive_tts	Preemptive generation	Also start TTS preemptively. Cuts more latency at the cost of wasted compute on cancellations.	False
 preemptive_generation.max_speech_duration	Preemptive generation	Skip preemptive generation for utterances longer than this. Long turns are more likely to mutate.	10.0 seconds
 preemptive_generation.max_retries	Preemptive generation	Cap on preemptive attempts per turn. Resets when the turn completes.	3
-Voice isolation	Audio pre-processing	Suppresses competing voices in the input so STT, VAD, and the turn detector see clean audio. Models include ai-coustics QUAIL_VF_L, Krisp BVC, and Krisp BVCTelephony.	Off
+Voice isolation	Audio pre-processing	Suppresses competing voices in the input so STT, VAD, and the turn detector see clean audio. Models include ai-coustics QUAIL_VF_L and Krisp BVC.	Off
 Background noise suppression	Audio pre-processing	Suppresses non-speech noise. Use when the main challenge is environmental noise rather than competing speakers.	Off
 min_consecutive_speech_delay	Agent speech scheduling	Minimum gap between consecutive agent utterances. Does not affect user-side turn detection.
 
