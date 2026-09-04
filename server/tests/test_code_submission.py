@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from agents.coding import CodingAgent
 from code_submission import CodeSubmission, LocalCodeSubmissionStore
 
 
@@ -91,3 +92,16 @@ async def test_local_store_never_overwrites_multiple_submissions(
     assert json.loads(first.read_text())["code"] == "first"
     assert json.loads(second.read_text())["code"] == "second"
     assert json.loads(third.read_text())["code"] == "third"
+
+
+@pytest.mark.asyncio
+async def test_constructing_and_entering_coding_agent_does_not_create_submission(
+    tmp_path: Path,
+) -> None:
+    agent = CodingAgent(
+        submission_store=LocalCodeSubmissionStore(repository_root=tmp_path)
+    )
+
+    await agent.on_enter()
+
+    assert not (tmp_path / "logs").exists()
