@@ -1,5 +1,5 @@
 version: "3"
-dotenv: [".env.local"]
+dotenv: ["../.env"]
 vars:
   INDENT: 4
   REL_PATH: "{{ relPath .USER_WORKING_DIR .ROOT_DIR }}"

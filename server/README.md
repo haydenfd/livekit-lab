@@ -76,7 +76,7 @@ cd agent-starter-python
 uv sync
 ```
 
-Copy `.env.example` to `.env.local` and fill in the provider and LiveKit credentials:
+Copy `.env.example` to the repository root `.env` and fill in the provider and LiveKit credentials:
 
 - `LIVEKIT_URL`
 - `LIVEKIT_API_KEY`
@@ -110,7 +110,7 @@ You can load the LiveKit environment automatically using the [LiveKit CLI](https
 
 ```bash
 lk cloud auth
-lk app env --write --destination .env.local
+lk app env --write --destination ../.env
 ```
 
 </details>

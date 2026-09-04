@@ -10,7 +10,7 @@ server/    Python agent using OpenAI GPT-5.6 and Deepgram STT/TTS
 
 ## Local setup
 
-Keep provider credentials in the repository root `.env.local`:
+Keep provider credentials in the repository root `.env`:
 
 ```env
 LIVEKIT_URL=ws://127.0.0.1:7880
@@ -26,7 +26,7 @@ Start the local LiveKit server, Python agent, and web UI together:
 make dev
 ```
 
-The first run installs Python and web dependencies. Local LiveKit development defaults to `ws://127.0.0.1:7880` with `devkey` / `secret` if those values are not already in `.env.local`. Press `Ctrl-C` once to stop all three processes. Open [http://localhost:3000](http://localhost:3000) and click **Start interview**.
+The first run installs Python and web dependencies. Local LiveKit development defaults to `ws://127.0.0.1:7880` with `devkey` / `secret` if those values are not already in `.env`. Press `Ctrl-C` once to stop all three processes. Open [http://localhost:3000](http://localhost:3000) and click **Start interview**.
 
 The browser receives a short-lived participant token from `web/app/api/token/route.ts`; the LiveKit API secret never goes to the browser.
 

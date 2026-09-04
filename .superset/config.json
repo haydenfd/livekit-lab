@@ -1,0 +1,9 @@
+{
+  "setup": [
+    "cp \"$HOME/.superset/envs/livekit-lab.env\" .env",
+    "cd web && pnpm install --frozen-lockfile",
+    "cd ../server && uv sync --frozen"
+  ],
+  "run": ["make dev"],
+  "teardown": []
+}

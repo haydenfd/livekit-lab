@@ -167,7 +167,7 @@ Use `audioVisualizerColor` to set a shared accent color across all visualizer mo
 
 #### Environment Variables
 
-You'll also need to configure your LiveKit credentials in `.env.local` (copy `.env.example` if you don't have one):
+You'll also need to configure your LiveKit credentials in the repository root `.env` (copy `.env.example` if you don't have one):
 
 ```env
 LIVEKIT_API_KEY=your_livekit_api_key
