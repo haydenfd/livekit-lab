@@ -54,8 +54,9 @@ class CodingAgent(Agent):
 
         candidate = candidates[0]
         started_at = time.perf_counter()
-        logger.debug(
-            "Requesting current editor code", extra={"identity": candidate.identity}
+        logger.info(
+            "Current editor code RPC started",
+            extra={"identity": candidate.identity},
         )
         try:
             try:
@@ -65,11 +66,15 @@ class CodingAgent(Agent):
                     payload="",
                     response_timeout=3.0,
                 )
-            except rtc.RpcError:
+            except rtc.RpcError as error:
                 duration_ms = (time.perf_counter() - started_at) * 1000
                 logger.warning(
                     "Current editor code RPC failed",
-                    extra={"duration_ms": duration_ms},
+                    extra={
+                        "identity": candidate.identity,
+                        "duration_ms": duration_ms,
+                        "error_type": type(error).__name__,
+                    },
                 )
                 raise
         except rtc.RpcError as error:
@@ -79,6 +84,7 @@ class CodingAgent(Agent):
         logger.info(
             "Current editor code RPC succeeded",
             extra={
+                "identity": candidate.identity,
                 "duration_ms": duration_ms,
                 "code_bytes": len(code.encode("utf-8")),
             },

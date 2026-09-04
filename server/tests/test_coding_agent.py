@@ -1,3 +1,4 @@
+import logging
 from types import SimpleNamespace
 
 import pytest
@@ -59,6 +60,14 @@ def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     assert "on_enter" not in CodingAgent.__dict__
 
 
+def test_coding_prompt_requires_fresh_code_for_current_code_judgments() -> None:
+    assert "mandatory before responding" in CODING_PROMPT
+    assert "inspect,\n  validate, review, debug, or judge" in CODING_PROMPT
+    assert "likely to pass tests" in CODING_PROMPT
+    assert "Why isn't my loop working?" in CODING_PROMPT
+    assert "I think this is my\n  implementation" in CODING_PROMPT
+
+
 @pytest.mark.asyncio
 async def test_continue_silently_stops_without_speech() -> None:
     agent = CodingAgent()
@@ -74,7 +83,9 @@ async def test_continue_silently_stops_without_speech() -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_current_code_requests_the_single_standard_participant() -> None:
+async def test_get_current_code_requests_the_single_standard_participant(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     agent = CodingAgent()
 
     async def perform_rpc(**kwargs: object) -> str:
@@ -99,14 +110,28 @@ async def test_get_current_code_requests_the_single_standard_participant() -> No
         session=SimpleNamespace(room_io=SimpleNamespace(room=room))
     )
 
-    assert (
-        await agent.get_current_code.__wrapped__(agent, context)
-        == "def solve():\n    return 42"
-    )
+    with caplog.at_level(logging.INFO, logger="agents.coding"):
+        code = await agent.get_current_code.__wrapped__(agent, context)
+
+    assert code == "def solve():\n    return 42"
+    rpc_records = [
+        record
+        for record in caplog.records
+        if record.message.startswith("Current editor code RPC")
+    ]
+    assert [record.message for record in rpc_records] == [
+        "Current editor code RPC started",
+        "Current editor code RPC succeeded",
+    ]
+    assert rpc_records[0].identity == "candidate"
+    assert rpc_records[1].identity == "candidate"
+    assert rpc_records[1].code_bytes == len(code.encode("utf-8"))
 
 
 @pytest.mark.asyncio
-async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error() -> None:
+async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     agent = CodingAgent()
 
     async def perform_rpc(**_: object) -> str:
@@ -125,8 +150,20 @@ async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error() -
         session=SimpleNamespace(room_io=SimpleNamespace(room=room))
     )
 
-    with pytest.raises(ValueError, match="Candidate code is unavailable"):
+    with (
+        caplog.at_level(logging.INFO, logger="agents.coding"),
+        pytest.raises(ValueError, match="Candidate code is unavailable"),
+    ):
         await agent.get_current_code.__wrapped__(agent, context)
+
+    failed_record = next(
+        record
+        for record in caplog.records
+        if record.message == "Current editor code RPC failed"
+    )
+    assert failed_record.identity == "candidate"
+    assert failed_record.duration_ms >= 0
+    assert failed_record.error_type == "RpcError"
 
 
 @pytest.mark.asyncio
