@@ -135,6 +135,28 @@ In production, use the `start` command:
 uv run python src/agent.py start
 ```
 
+### Start directly in the coding stage
+
+For faster local iteration, set this in the repository-root `.env`:
+
+```env
+INTERVIEW_START_STAGE=coding
+```
+
+This server-side, process-wide setting skips the intro and discussion stages. It
+starts the reverse-linked-list coding stage with a known iterative approach and
+speaks a deterministic approval before implementation begins. Restart the server
+after changing it. No frontend control is added.
+
+Restore the full interview flow with:
+
+```env
+INTERVIEW_START_STAGE=intro
+```
+
+`intro` is the default when the variable is omitted. Any other value stops server
+startup with an error that lists the accepted values.
+
 ## Frontend & Telephony
 
 Get started quickly with our pre-built frontend starter apps, or add telephony support:
