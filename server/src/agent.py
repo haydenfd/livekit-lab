@@ -28,7 +28,11 @@ async def my_agent(ctx: JobContext):
         "room": ctx.room.name,
     }
 
-    interview_context = InterviewContext.from_dispatch_metadata(ctx.job.metadata)
+    interview_context = InterviewContext.from_dispatch_metadata(
+        ctx.job.metadata,
+        job_id=ctx.job.id,
+        room_name=ctx.room.name,
+    )
     agent_session = create_agent_session(interview_context)
     TranscriptionService().register(ctx, agent_session)
 

@@ -31,6 +31,20 @@ def test_interview_context_ignores_missing_or_unusable_metadata(
     assert context.programming_language is None
 
 
+def test_interview_context_retains_livekit_job_and_room_metadata() -> None:
+    context = InterviewContext.from_dispatch_metadata(
+        json.dumps({"programmingLanguage": "python"}),
+        job_id="job-123",
+        room_name="interview-room",
+    )
+
+    assert context == InterviewContext(
+        programming_language="python",
+        job_id="job-123",
+        room_name="interview-room",
+    )
+
+
 def test_create_agent_session_receives_typed_interview_context(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
