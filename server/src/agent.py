@@ -21,9 +21,9 @@ from services.transcription_service import TranscriptionService
 logger = logging.getLogger("agent")
 
 CODING_APPROACH = (
-    "Keep `previous` and `current` pointers. For each node, save its next node, "
-    "point it back to `previous`, advance both pointers, and return `previous`. "
-    "This also handles empty and single-node lists."
+    "Use a dummy head and a tail pointer. Compare the current nodes from both "
+    "sorted lists, link the smaller node to the tail, and advance that list. "
+    "When one list is exhausted, attach the other list and return dummy.next."
 )
 CODING_APPROVAL = "That approach works. Go ahead and start implementing it."
 
