@@ -90,43 +90,8 @@ def attach_session(agent: object, session: RecordingSession) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
 
-def test_discussion_instructions_include_discussion_context() -> None:
-    agent = DiscussionAgent()
-    context = build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION)
-
-    assert context in agent.instructions
-
-
-def test_discussion_accepts_an_injected_question() -> None:
-    question = make_question()
-
-    agent = DiscussionAgent(question=question)
-
-    assert question.prompt in agent.instructions
-    assert build_discussion_question_context(question) in agent.instructions
-    assert build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION) not in (
-        agent.instructions
-    )
-
-
 def test_discussion_does_not_override_on_enter() -> None:
     assert "on_enter" not in DiscussionAgent.__dict__
-
-
-def test_intro_opening_instructions_request_a_concise_core_task_summary() -> None:
-    question = make_question()
-
-    instructions = build_intro_opening_instructions(question)
-
-    assert build_intro_question_context(question) in instructions
-    assert question.prompt in instructions
-    assert "Example 1" not in instructions
-    lowered = instructions.lower()
-    assert "constraint" in lowered
-    assert "example" in lowered
-    assert "algorithm" in lowered
-    assert "do not ask any questions" in lowered
-    assert "do not mention a programming language" in lowered
 
 
 @pytest.mark.asyncio

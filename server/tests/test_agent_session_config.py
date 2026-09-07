@@ -36,7 +36,11 @@ def test_build_agent_session_config_preserves_active_settings(
         "language": "en-US",
         "smart_format": True,
     }
-    assert config["llm"].kwargs == {"model": "gpt-5.6"}
+    assert config["llm"].kwargs == {
+        "model": "gpt-5.6",
+        "use_websocket": True,
+        "parallel_tool_calls": False,
+    }
     assert config["tts"].kwargs == {"model": "aura-2-asteria-en"}
     assert config["expressive"] is False
     assert config["turn_handling"] == {
