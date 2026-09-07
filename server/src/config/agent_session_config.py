@@ -4,6 +4,13 @@ from livekit.agents import TurnHandlingOptions, inference
 from livekit.plugins import deepgram, openai
 
 
+def build_interview_llm(*, use_websocket: bool = True) -> openai.responses.LLM:
+    """Share model selection while allowing an isolated silent HTTP request."""
+    return openai.responses.LLM(
+        model="gpt-5.6", use_websocket=use_websocket, parallel_tool_calls=False
+    )
+
+
 def build_agent_session_config() -> dict[str, object]:
     """Build fresh AgentSession keyword arguments for one agent job."""
     return {
@@ -14,7 +21,7 @@ def build_agent_session_config() -> dict[str, object]:
         ),
         # GPT-5.6 function tools require OpenAI's Responses API, not Chat Completions.
         # The plugin reads OPENAI_API_KEY.
-        "llm": openai.responses.LLM(model="gpt-5.6"),
+        "llm": build_interview_llm(),
         "tts": deepgram.TTS(model="aura-2-asteria-en"),
         "turn_handling": TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),

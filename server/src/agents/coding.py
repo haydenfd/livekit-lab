@@ -1,13 +1,15 @@
-"""Coding stage for the minimal interview flow."""
+"""Primary coding, immutable submission, and the one follow-up selection boundary."""
 
+import asyncio
 import logging
-import time
 from datetime import UTC, datetime
+from uuid import uuid4
 
-from livekit import rtc
-from livekit.agents import Agent, ChatContext, RunContext, StopResponse, function_tool
+from livekit.agents import Agent, ChatContext, RunContext, ToolError, function_tool
 
+from agents.coding_tools import CodingTools
 from agents.conclusion import ConclusionAgent
+from agents.followup import FollowUpAgent
 from agents.prompts.base import build_instructions
 from agents.prompts.coding import build_coding_prompt
 from agents.prompts.questions import REVERSE_LINKED_LIST_QUESTION
@@ -16,74 +18,19 @@ from code_submission import (
     CodeSubmissionStore,
     LocalCodeSubmissionStore,
 )
+from editor_code import get_current_editor_code
+from followup import log_followup
+from followup_selector import select_followup
 from interview_context import InterviewContext
 from interview_question import InterviewQuestion
 
 logger = logging.getLogger(__name__)
 
-ACKNOWLEDGMENT_INSTRUCTIONS = (
-    "Briefly and naturally acknowledge that the implementation is accepted. "
-    "Do not mention tools, storage, logs, persistence, or internal systems."
-)
+FOLLOWUP_TRANSITION = "Okay, let's move on."
 
 
-async def get_current_editor_code(context: RunContext[InterviewContext]) -> str:
-    """Return the only candidate's current editor contents via the canonical RPC."""
-    room = context.session.room_io.room
-    candidates = [
-        participant
-        for participant in room.remote_participants.values()
-        if participant.kind == rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD
-    ]
-    if not candidates:
-        raise ValueError("Candidate code is unavailable: no candidate participant.")
-    if len(candidates) > 1:
-        raise ValueError(
-            "Candidate code is unavailable: multiple candidate participants."
-        )
-
-    candidate = candidates[0]
-    started_at = time.perf_counter()
-    logger.info(
-        "Current editor code RPC started",
-        extra={"identity": candidate.identity},
-    )
-    try:
-        try:
-            code = await room.local_participant.perform_rpc(
-                destination_identity=candidate.identity,
-                method="editor.get_current_code",
-                payload="",
-                response_timeout=3.0,
-            )
-        except rtc.RpcError as error:
-            duration_ms = (time.perf_counter() - started_at) * 1000
-            logger.warning(
-                "Current editor code RPC failed",
-                extra={
-                    "identity": candidate.identity,
-                    "duration_ms": duration_ms,
-                    "error_type": type(error).__name__,
-                },
-            )
-            raise
-    except rtc.RpcError as error:
-        raise ValueError("Candidate code is unavailable.") from error
-
-    duration_ms = (time.perf_counter() - started_at) * 1000
-    logger.info(
-        "Current editor code RPC succeeded",
-        extra={
-            "identity": candidate.identity,
-            "duration_ms": duration_ms,
-            "code_bytes": len(code.encode("utf-8")),
-        },
-    )
-    return code
-
-
-class CodingAgent(Agent):
-    """Stay quiet while the candidate implements, unless they ask for help."""
+class CodingAgent(CodingTools, Agent):
+    """Stay quiet while implementing; submit only after review and complexity."""
 
     def __init__(
         self,
@@ -99,46 +46,97 @@ class CodingAgent(Agent):
         )
         self._question = question
         self._submission_store = submission_store or LocalCodeSubmissionStore()
+        self._next_agent: Agent | None = None
 
     @function_tool()
-    async def continue_silently(self, context: RunContext[InterviewContext]) -> None:
-        """End this response silently when the candidate is continuing their implementation and does not expect interviewer participation."""
-        raise StopResponse()
-
-    @function_tool()
-    async def get_current_code(self, context: RunContext[InterviewContext]) -> str:
-        """Retrieve the candidate's current editor code for an implementation-specific question or direct code-inspection request."""
-        return await get_current_editor_code(context)
-
-    @function_tool()
-    async def submit_code(
-        self, context: RunContext[InterviewContext]
-    ) -> ConclusionAgent:
+    async def submit_code(self, context: RunContext[InterviewContext]) -> Agent:
         """Submit only after the implementation is acceptable and baseline time and space complexity are adequately established."""
-        code = await get_current_editor_code(context)
-        interview = context.userdata
-        submission = CodeSubmission(
-            job_id=interview.job_id,
-            room_name=interview.room_name,
-            question_slug=self._question.slug,
-            question_title=self._question.title,
-            programming_language=interview.programming_language,
-            code=code,
-            submitted_at=datetime.now(UTC),
-        )
-        try:
-            await self._submission_store.save(submission)
-        except Exception as error:
-            logger.exception(
-                "Code submission storage failed",
-                extra={"question_slug": self._question.slug},
+        state = context.userdata.followup
+        if self._next_agent is not None:
+            log_followup(state, "primary_transition_repeat_blocked")
+            return self._next_agent
+        if state.primary_transition_running or state.entered or state.consumed:
+            log_followup(state, "primary_transition_blocked")
+            raise ToolError(
+                "Primary submission is already being processed or complete."
             )
-            raise ValueError("Code submission could not be saved.") from error
+        state.primary_transition_running = True
+        try:
+            return await self._save_and_route(context)
+        finally:
+            state.primary_transition_running = False
 
-        speech = self.session.generate_reply(
-            instructions=ACKNOWLEDGMENT_INSTRUCTIONS,
-            tool_choice="none",
-            allow_interruptions=False,
-        )
-        await speech.wait_for_playout()
-        return ConclusionAgent()
+    async def _save_and_route(self, context: RunContext[InterviewContext]) -> Agent:
+        interview = context.userdata
+        state = interview.followup
+        # A retry after a later operation fails reuses V1, never re-reads or
+        # overwrites the accepted original solution.
+        if state.primary_submission is None:
+            code = await get_current_editor_code(context)
+            submission = CodeSubmission(
+                job_id=interview.job_id,
+                room_name=interview.room_name,
+                question_slug=self._question.slug,
+                question_title=self._question.title,
+                programming_language=interview.programming_language,
+                code=code,
+                submitted_at=datetime.now(UTC),
+                submission_id=uuid4().hex,
+                version=1,
+            )
+            try:
+                path = await self._submission_store.save(submission)
+            except Exception as error:
+                logger.exception(
+                    "Code submission storage failed",
+                    extra={"question_slug": self._question.slug},
+                )
+                raise ValueError("Code submission could not be saved.") from error
+            state.primary_submission = submission
+            state.primary_submission_path = str(path)
+            log_followup(
+                state,
+                "primary_submission_saved",
+                version=1,
+                path=str(path),
+                code_bytes=len(code.encode("utf-8")),
+            )
+
+        if state.selector_started:
+            plan = await select_followup(self._question, state, self.chat_ctx)
+        else:
+            # Selection runs while TTS speaks the transition. A fixed line needs
+            # no extra LLM turn; handoff waits for BOTH selection and playout.
+            selection = asyncio.create_task(
+                select_followup(self._question, state, self.chat_ctx.copy()),
+                name="select_followup",
+            )
+            try:
+                log_followup(state, "transition_speech_started")
+                await self.session.say(
+                    FOLLOWUP_TRANSITION, allow_interruptions=False
+                ).wait_for_playout()
+                log_followup(state, "transition_speech_completed")
+                plan = await selection
+            finally:
+                # Do not leave a model request running after a speech failure
+                # or session cancellation. Completed selection stays cached.
+                if not selection.done():
+                    selection.cancel()
+                await asyncio.gather(selection, return_exceptions=True)
+        if plan is None or plan.mode == "none":
+            state.consumed = True
+            log_followup(
+                state,
+                "followup_skipped",
+                reason="selector_failure" if plan is None else "none",
+            )
+            self._next_agent = ConclusionAgent()
+        else:
+            self._next_agent = FollowUpAgent(
+                question=self._question,
+                plan=plan,
+                state=state,
+                submission_store=self._submission_store,
+            )
+        return self._next_agent

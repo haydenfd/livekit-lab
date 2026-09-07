@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Literal, Protocol
 
 
 @dataclass(frozen=True)
@@ -20,6 +20,27 @@ class CodeSubmission:
     job_id: str | None = None
     room_name: str | None = None
     programming_language: str | None = None
+    submission_id: str | None = None
+    version: int | None = None
+    primary_submission_id: str | None = None
+    followup_id: str | None = None
+    outcome: Literal["demonstrated", "partial", "unable", "time_expired"] | None = None
+
+    def __post_init__(self) -> None:
+        if self.version is None:
+            return  # Legacy records remain readable/constructible.
+        if self.version not in {1, 2} or not self.submission_id:
+            raise ValueError("Versioned submissions require an ID and version 1 or 2.")
+        if self.version == 1 and (self.primary_submission_id or self.followup_id):
+            raise ValueError("Primary submissions cannot reference a follow-up.")
+        if self.version == 2 and (
+            not self.primary_submission_id
+            or not self.followup_id
+            or self.submission_id == self.primary_submission_id
+        ):
+            raise ValueError(
+                "V2 requires a distinct ID and primary/follow-up references."
+            )
 
 
 class CodeSubmissionStore(Protocol):

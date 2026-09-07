@@ -1,7 +1,9 @@
 """Session-scoped interview metadata shared by every agent stage."""
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from followup import FollowUpState
 
 
 @dataclass(frozen=True)
@@ -11,6 +13,7 @@ class InterviewContext:
     programming_language: str | None = None
     job_id: str | None = None
     room_name: str | None = None
+    followup: FollowUpState = field(default_factory=FollowUpState, compare=False)
 
     @classmethod
     def from_dispatch_metadata(
