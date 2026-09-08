@@ -14,6 +14,25 @@ Read [the implementation snapshot](docs/interview-flow.md) for the current
 node-by-node interview lifecycle, editor-code access, state handoffs, and known
 incomplete areas.
 
+## Generate an Excalidraw architecture diagram
+
+This repository includes the official Excalidraw MCP server in `.mcp.json`.
+After your MCP client reloads the repository configuration, ask it:
+
+> Read `architecture.md` and `docs/interview-flow.md`. Using the Excalidraw MCP,
+> create a hand-drawn architecture diagram of the current AlgoVox LiveKit
+> interview flow. Show one candidate, the browser, LiveKit Cloud, the Python
+> agent worker, `AgentSession`, and the stage handoffs `IntroAgent` ->
+> `DiscussionAgent` -> `CodingAgent` -> `ConclusionAgent`. Include the
+> `session.history` and `agent.chat_ctx` distinction, and label `FollowUpAgent`
+> as future work with a dashed outline. Do not add components that are not
+> described as current in the source files.
+
+The server is remote, so no package installation is needed. Use the generated
+canvas as the visual companion to [the architecture reference](architecture.md);
+the source files remain authoritative when the diagram and implementation
+diverge.
+
 ## Deploy to LiveKit Cloud
 
 This project uses LiveKit Cloud for rooms, agent dispatch, and production agent
