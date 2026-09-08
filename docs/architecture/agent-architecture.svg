@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1228" height="1263" viewBox="11 1 1228 1263">
+<rect x="11" y="1" width="1228" height="1263" fill="#ffffff"/>
+<text x="40" y="48.8" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" opacity="1">AlgoVox interview agent — implemented stage flow</text>
+<text x="720" y="45.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#868e96" text-anchor="start" opacity="1">solid arrows = deterministic code  •  dashed arrows = LLM/tool choice</text>
+<rect x="35" y="75" width="1180" height="390" rx="97.5" ry="97.5" fill="#f3f0ff" stroke="#6741d9" stroke-width="2" opacity="0.25" />
+<text x="55" y="107" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#5f3dc4" text-anchor="start" opacity="1">Internal bot control flow</text>
+<rect x="70" y="145" width="155" height="70" rx="17.5" ry="17.5" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="147.5" y="182" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#1e1e1e" text-anchor="middle" opacity="1">IntroAgent</text>
+<rect x="285" y="145" width="185" height="70" rx="17.5" ry="17.5" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="377.5" y="182" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#1e1e1e" text-anchor="middle" opacity="1">DiscussionAgent</text>
+<rect x="535" y="130" width="205" height="100" rx="25" ry="25" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="637.5" y="169.4" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="19" fill="#1e1e1e" text-anchor="middle" opacity="1">CodingAgent</text>
+<text x="637.5" y="193.15" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="19" fill="#1e1e1e" text-anchor="middle" opacity="1">code + complexity</text>
+<path d="M 907.5 125 L 1000 180 L 907.5 235 L 815 180 Z" stroke-linejoin="round" fill="#f3d9fa" stroke="#9c36b5" stroke-width="2" opacity="1" />
+<text x="907.5" y="172.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">silent LLM</text>
+<text x="907.5" y="192.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">selector</text>
+<rect x="1040" y="145" width="150" height="70" rx="17.5" ry="17.5" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="1115" y="181.75" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="19" fill="#1e1e1e" text-anchor="middle" opacity="1">ConclusionAgent</text>
+<rect x="790" y="305" width="220" height="85" rx="21.25" ry="21.25" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="900" y="341.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">FollowUpAgent</text>
+<text x="900" y="363.3" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">discuss</text>
+<rect x="500" y="305" width="230" height="85" rx="21.25" ry="21.25" fill="#e5dbff" stroke="#5f3dc4" stroke-width="2" opacity="1" />
+<text x="615" y="341.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">FollowUpCodingTask</text>
+<text x="615" y="363.3" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">optional code excursion</text>
+<g><path d="M 225 180 L 285 180" fill="none" stroke="#5f3dc4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8.0 4.0" opacity="1" /><polygon points="285,180 277,184 277,176" fill="#5f3dc4" stroke="#5f3dc4" /></g>
+<text x="256.5" y="162.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#5f3dc4" text-anchor="middle" opacity="1">tool call</text>
+<g><path d="M 470 180 L 535 180" fill="none" stroke="#5f3dc4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8.0 4.0" opacity="1" /><polygon points="535,180 527,184 527,176" fill="#5f3dc4" stroke="#5f3dc4" /></g>
+<text x="502.5" y="162.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#5f3dc4" text-anchor="middle" opacity="1">start_coding</text>
+<g><path d="M 740 180 L 815 180" fill="none" stroke="#5f3dc4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8.0 4.0" opacity="1" /><polygon points="815,180 807,184 807,176" fill="#5f3dc4" stroke="#5f3dc4" /></g>
+<text x="778" y="153.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#5f3dc4" text-anchor="middle" opacity="1">submit_code</text>
+<text x="778" y="168.65" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#5f3dc4" text-anchor="middle" opacity="1">(V1 first)</text>
+<g><path d="M 1000 180 L 1040 180" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="1040,180 1032,184 1032,176" fill="#343a40" stroke="#343a40" /></g>
+<text x="1023" y="130.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="middle" opacity="1">none /</text>
+<text x="1023" y="145.65" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="middle" opacity="1">failure</text>
+<g><path d="M 900 235 L 900 305" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="900,305 896,297 904,297" fill="#343a40" stroke="#343a40" /></g>
+<text x="912" y="262.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="start" opacity="1">discuss or</text>
+<text x="912" y="277.65" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="start" opacity="1">discuss+code</text>
+<g><path d="M 790 347 L 730 347" fill="none" stroke="#5f3dc4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8.0 4.0" opacity="1" /><polygon points="730,347 738,343 738,351" fill="#5f3dc4" stroke="#5f3dc4" /></g>
+<text x="759" y="326.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#5f3dc4" text-anchor="middle" opacity="1">start_coding</text>
+<g><path d="M 730 375 L 790 375" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="790,375 782,379 782,371" fill="#343a40" stroke="#343a40" /></g>
+<text x="761" y="403.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="middle" opacity="1">complete</text>
+<g><path d="M 1010 347 L 1115 215" fill="none" stroke="#343a40" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="1115,215 1113.15,223.75 1106.89,218.77" fill="#343a40" stroke="#343a40" /></g>
+<text x="1073.5" y="289.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="middle" opacity="1">finish /</text>
+<text x="1073.5" y="304.65" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#343a40" text-anchor="middle" opacity="1">task returns</text>
+<text x="675" y="256.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#5f3dc4" text-anchor="middle" opacity="1">LLM reviews code, then asks baseline time +</text>
+<text x="675" y="273.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#5f3dc4" text-anchor="middle" opacity="1">space complexity before calling submit_code</text>
+<text x="40" y="528.8" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" opacity="1">Runtime, state, models, and persistence</text>
+<rect x="35" y="565" width="250" height="430" rx="62.5" ry="62.5" fill="#e7f5ff" stroke="#1971c2" stroke-width="2" opacity="0.35" />
+<text x="55" y="597" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#1864ab" text-anchor="start" opacity="1">Client / Next.js</text>
+<rect x="60" y="630" width="200" height="105" rx="26.25" ry="26.25" fill="#a5d8ff" stroke="#1971c2" stroke-width="2" opacity="1" />
+<text x="160" y="666.58" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Interview UI</text>
+<text x="160" y="687.83" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">mic + transcript</text>
+<text x="160" y="709.08" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">CodeEditor + codeRef</text>
+<rect x="60" y="780" width="200" height="95" rx="23.75" ry="23.75" fill="#a5d8ff" stroke="#1971c2" stroke-width="2" opacity="1" />
+<text x="160" y="811.8" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle" opacity="1">token route</text>
+<text x="160" y="831" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle" opacity="1">dispatch metadata:</text>
+<text x="160" y="850.2" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle" opacity="1">programmingLanguage=python</text>
+<rect x="315" y="565" width="255" height="430" rx="63.75" ry="63.75" fill="#e3fafc" stroke="#0b7285" stroke-width="2" opacity="0.35" />
+<text x="335" y="597" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#087f5b" text-anchor="start" opacity="1">LiveKit room / session</text>
+<rect x="340" y="630" width="205" height="90" rx="22.5" ry="22.5" fill="#99e9f2" stroke="#0b7285" stroke-width="2" opacity="1" />
+<text x="442.5" y="668.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">LiveKit room</text>
+<text x="442.5" y="690.3" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">audio + RPC + data</text>
+<rect x="340" y="760" width="205" height="100" rx="25" ry="25" fill="#99e9f2" stroke="#0b7285" stroke-width="2" opacity="1" />
+<text x="442.5" y="790.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">AgentSession</text>
+<text x="442.5" y="812.5" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">history + current agent</text>
+<text x="442.5" y="834.1" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">userdata</text>
+<rect x="600" y="565" width="330" height="430" rx="82.5" ry="82.5" fill="#f3f0ff" stroke="#6741d9" stroke-width="2" opacity="0.35" />
+<text x="620" y="597" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#5f3dc4" text-anchor="start" opacity="1">Agent / state machine</text>
+<rect x="625" y="630" width="280" height="90" rx="22.5" ry="22.5" fill="#d0bfff" stroke="#6741d9" stroke-width="2" opacity="1" />
+<text x="765" y="667.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">stage Agents + tools</text>
+<text x="765" y="689.3" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="18" fill="#1e1e1e" text-anchor="middle" opacity="1">(see flow above)</text>
+<rect x="625" y="760" width="280" height="145" rx="36.25" ry="36.25" fill="#d0bfff" stroke="#6741d9" stroke-width="2" opacity="1" />
+<text x="651" y="795.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="start" opacity="1">InterviewContext (session-owned)</text>
+<text x="651" y="815.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="start" opacity="1">• language, job ID, room name</text>
+<text x="651" y="835.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="start" opacity="1">• mutable FollowUpState</text>
+<text x="651" y="855.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="start" opacity="1">• V1 reference + fixed plan</text>
+<text x="651" y="875.6" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="start" opacity="1">• guards + outcome + consumed</text>
+<rect x="960" y="565" width="250" height="430" rx="62.5" ry="62.5" fill="#fff4e6" stroke="#e67700" stroke-width="2" opacity="0.35" />
+<text x="980" y="597" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#d9480f" text-anchor="start" opacity="1">Model / audio services</text>
+<rect x="985" y="630" width="200" height="65" rx="16.25" ry="16.25" fill="#ffd8a8" stroke="#e67700" stroke-width="2" opacity="1" />
+<text x="1085" y="666.25" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Deepgram STT</text>
+<rect x="985" y="725" width="200" height="90" rx="22.5" ry="22.5" fill="#ffd8a8" stroke="#e67700" stroke-width="2" opacity="1" />
+<text x="1085" y="762.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">OpenAI Responses</text>
+<text x="1085" y="782.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">gpt-5.6</text>
+<rect x="985" y="845" width="200" height="65" rx="16.25" ry="16.25" fill="#ffd8a8" stroke="#e67700" stroke-width="2" opacity="1" />
+<text x="1085" y="881.25" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Deepgram TTS</text>
+<rect x="35" y="1035" width="1175" height="205" rx="51.25" ry="51.25" fill="#ebfbee" stroke="#2b8a3e" stroke-width="2" opacity="0.35" />
+<text x="55" y="1067" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="20" fill="#2b8a3e" text-anchor="start" opacity="1">Persistence / external boundaries</text>
+<rect x="75" y="1100" width="245" height="90" rx="22.5" ry="22.5" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="2" opacity="1" />
+<text x="197.5" y="1137.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Bundled question fixture</text>
+<text x="197.5" y="1157.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Reverse Linked List metadata</text>
+<rect x="390" y="1100" width="255" height="90" rx="22.5" ry="22.5" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="2" opacity="1" />
+<text x="517.5" y="1137.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Local logs/code_submission_*</text>
+<text x="517.5" y="1157.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">immutable V1 + optional V2</text>
+<rect x="715" y="1100" width="235" height="90" rx="22.5" ry="22.5" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="2" opacity="1" />
+<text x="832.5" y="1137.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Local logs/followup_*.jsonl</text>
+<text x="832.5" y="1157.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">lifecycle diagnostics</text>
+<rect x="1010" y="1100" width="175" height="90" rx="22.5" ry="22.5" fill="#b2f2bb" stroke="#2b8a3e" stroke-width="2" opacity="1" />
+<text x="1097.5" y="1137.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">Local logs/session_*</text>
+<text x="1097.5" y="1157.45" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="17" fill="#1e1e1e" text-anchor="middle" opacity="1">shutdown transcript</text>
+<g><path d="M 260 675 L 340 675" fill="none" stroke="#0b7285" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="340,675 332,679 332,671" fill="#0b7285" stroke="#0b7285" /></g>
+<text x="299" y="651.05" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#0b7285" text-anchor="middle" opacity="1">voice /</text>
+<text x="299" y="666.65" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="13" fill="#0b7285" text-anchor="middle" opacity="1">transcript</text>
+<g><path d="M 260 827 L 340 722" fill="none" stroke="#0b7285" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="340,722 338.33,730.79 331.97,725.94" fill="#0b7285" stroke="#0b7285" /></g>
+<g><path d="M 545 675 L 625 675" fill="none" stroke="#6741d9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="625,675 617,679 617,671" fill="#6741d9" stroke="#6741d9" /></g>
+<g><path d="M 545 810 L 625 810" fill="none" stroke="#6741d9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="625,810 617,814 617,806" fill="#6741d9" stroke="#6741d9" /></g>
+<g><path d="M 905 675 L 985 662" fill="none" stroke="#e67700" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="985,662 977.75,667.23 976.46,659.33" fill="#e67700" stroke="#e67700" /></g>
+<g><path d="M 905 760 L 985 770" fill="none" stroke="#e67700" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="985,770 976.57,772.98 977.56,765.04" fill="#e67700" stroke="#e67700" /></g>
+<g><path d="M 985 877 L 905 805" fill="none" stroke="#e67700" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="905,805 913.62,807.38 908.27,813.32" fill="#e67700" stroke="#e67700" /></g>
+<g><path d="M 625 705 L 445 770 L 260 705" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="8.0 4.0" opacity="1" /><polygon points="260,705 268.87,703.88 266.22,711.43" fill="#1971c2" stroke="#1971c2" /></g>
+<text x="430" y="735.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#1971c2" text-anchor="middle" opacity="1">agent RPC: editor.get_current_code</text>
+<text x="430" y="752.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#1971c2" text-anchor="middle" opacity="1">returns latest codeRef snapshot</text>
+<g><path d="M 260 840 L 440 910 L 625 820" fill="none" stroke="#6741d9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="625,820 619.56,827.1 616.06,819.9" fill="#6741d9" stroke="#6741d9" /></g>
+<text x="425.5" y="904.9" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#6741d9" text-anchor="middle" opacity="1">dispatch metadata →</text>
+<text x="425.5" y="921.7" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="14" fill="#6741d9" text-anchor="middle" opacity="1">InterviewContext.from_dispatch_metadata</text>
+<g><path d="M 320 1145 L 440 1065 L 625 690" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="625,690 625.05,698.94 617.87,695.4" fill="#2b8a3e" stroke="#2b8a3e" /></g>
+<g><path d="M 765 905 L 735 1025 L 517 1100" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="517,1100 523.26,1093.62 525.87,1101.18" fill="#2b8a3e" stroke="#2b8a3e" /></g>
+<g><path d="M 810 905 L 833 1100" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="833,1100 828.09,1092.52 836.04,1091.59" fill="#2b8a3e" stroke="#2b8a3e" /></g>
+<g><path d="M 545 850 L 845 980 L 1097 1100" fill="none" stroke="#2b8a3e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1" /><polygon points="1097,1100 1088.06,1100.17 1091.5,1092.95" fill="#2b8a3e" stroke="#2b8a3e" /></g>
+<text x="645" y="1222.75" font-family="Virgil, Segoe Print, Comic Sans MS, sans-serif" font-size="15" fill="#2b8a3e" text-anchor="middle" opacity="1">No Supabase/database call is wired into the current interview runtime.</text>
+</svg>
