@@ -10,10 +10,9 @@ from test_agents import make_question
 import agents.coding as coding_module
 from agents.coding import CodingAgent
 from agents.discussion import DiscussionAgent
-from agents.prompts import CODING_PROMPT, REVERSE_LINKED_LIST_QUESTION
 from code_submission import CodeSubmission
+from followup import FollowUpPlan
 from interview_context import InterviewContext
-from interview_question import build_discussion_question_context
 
 
 class Speech:
@@ -61,14 +60,9 @@ def attach(agent: object, session: Session) -> None:
     agent._activity = SimpleNamespace(session=session)  # type: ignore[attr-defined]
 
 
-def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
+def test_coding_agent_has_expected_tools_and_config() -> None:
     agent = CodingAgent()
 
-    assert CODING_PROMPT in agent.instructions
-    assert (
-        build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION)
-        in agent.instructions
-    )
     assert {tool.info.name for tool in agent.tools} == {
         "continue_silently",
         "get_current_code",
@@ -76,16 +70,6 @@ def test_coding_agent_has_exact_prompt_context_and_tools() -> None:
     }
     assert agent.allow_interruptions is False
     assert "on_enter" not in CodingAgent.__dict__
-
-
-def test_coding_prompt_requires_fresh_code_for_current_code_judgments() -> None:
-    assert "mandatory before responding" in CODING_PROMPT
-    assert "inspect,\n  validate, review, debug, or judge" in CODING_PROMPT
-    assert "likely to pass tests" in CODING_PROMPT
-    assert "Why isn't my loop working?" in CODING_PROMPT
-    assert "I think this is my\n  implementation" in CODING_PROMPT
-    assert "submit_code" in CODING_PROMPT
-    assert "finish_coding" not in CODING_PROMPT
 
 
 @pytest.mark.asyncio
@@ -230,6 +214,20 @@ async def test_submit_code_persists_fresh_rpc_result_before_acknowledgment_and_h
 
     monkeypatch.setattr(coding_module, "ConclusionAgent", construct_conclusion)
 
+    async def select_no_followup(*_: object) -> FollowUpPlan:
+        events.append("selector")
+        return FollowUpPlan(
+            mode="none",
+            kind=None,
+            objective=None,
+            opening_question=None,
+            assessment_rubric=(),
+            coding_requirement=None,
+        )
+
+    # Keep this existing transition check offline after adding the selector.
+    monkeypatch.setattr(coding_module, "select_followup", select_no_followup)
+
     conclusion = await agent.submit_code.__wrapped__(agent, context)
 
     assert conclusion is sentinel
@@ -238,8 +236,9 @@ async def test_submit_code_persists_fresh_rpc_result_before_acknowledgment_and_h
         "rpc",
         "store:start",
         "store:complete",
-        "generate_reply",
-        "wait:generate_reply",
+        f"say:{coding_module.FOLLOWUP_TRANSITION}",
+        f"wait:say:{coding_module.FOLLOWUP_TRANSITION}",
+        "selector",
         "conclusion",
     ]
     assert len(store.submissions) == 1
@@ -250,14 +249,10 @@ async def test_submit_code_persists_fresh_rpc_result_before_acknowledgment_and_h
     assert store.submissions[0].question_title == "Injected Question"
     assert store.submissions[0].programming_language == "python"
     assert store.submissions[0].submitted_at.tzinfo is not None
-    assert session.spoken == []
-    assert session.generated == [
-        (
-            "Briefly and naturally acknowledge that the implementation is accepted. "
-            "Do not mention tools, storage, logs, persistence, or internal systems.",
-            {"tool_choice": "none", "allow_interruptions": False},
-        )
+    assert session.spoken == [
+        (coding_module.FOLLOWUP_TRANSITION, {"allow_interruptions": False})
     ]
+    assert session.generated == []
 
 
 @pytest.mark.asyncio

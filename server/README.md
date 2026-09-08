@@ -21,6 +21,18 @@ The starter project includes:
 This app is deployed to LiveKit Cloud and connects to the repository's Next.js
 web frontend.
 
+## Bounded follow-up v1
+
+Primary coding now saves immutable V1, selects one follow-up silently, and enters
+FollowUpAgent. A code-required assessment temporarily runs FollowUpCodingTask,
+saves separate V2 evidence, and returns to the same parent before conclusion.
+Discussion-only and valid-none paths do not start a coding task.
+
+See [the current flow and dogfooding guide](../docs/interview-flow.md) for schemas,
+guards, failure handling, and log events. Lifecycle records are written to
+repository-root `logs/followup_<id>.jsonl`; code snapshots remain separate JSON
+files alongside them. The console shows the same correlated lifecycle events.
+
 ## Using coding agents
 
 This project is designed to work with coding agents like [Cursor](https://www.cursor.com/) and [Codex](https://openai.com/codex/).

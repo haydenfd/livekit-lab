@@ -19,6 +19,7 @@ source = { editable = "." }
 dependencies = [
     { name = "livekit-agents", extra = ["deepgram", "openai"] },
     { name = "livekit-plugins-ai-coustics" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
 ]
 
@@ -33,6 +34,7 @@ dev = [
 requires-dist = [
     { name = "livekit-agents", extras = ["deepgram", "openai"], specifier = ">=1.6.9" },
     { name = "livekit-plugins-ai-coustics", specifier = "~=0.2" },
+    { name = "pydantic", specifier = ">=2,<3" },
     { name = "python-dotenv" },
 ]
 
