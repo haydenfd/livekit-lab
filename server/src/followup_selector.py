@@ -105,7 +105,8 @@ async def _request_plan(
                         "schema": FollowUpPlan.model_json_schema(),
                     }
                 },
-                "max_output_tokens": 4000,
+                "reasoning": {"effort": "low"},
+                "max_output_tokens": 1500,
             },
         ) as stream,
     ):

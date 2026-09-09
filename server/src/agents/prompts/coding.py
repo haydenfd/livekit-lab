@@ -37,6 +37,12 @@ Completion policy:
   to move on" as presenting the implementation as finished. Also treat a
   candidate asking "I think this is my implementation. Can you have a look and
   tell me if it's good?" as requesting a completion review.
+- Once clear completion intent is established, keep treating the presented
+  implementation as finished through any subsequent request to inspect, review,
+  validate, or judge it. A later review request does not downgrade the solution
+  to work in progress. Completion intent ends only when the review identifies a
+  meaningful issue and the candidate resumes implementation, or the candidate
+  explicitly says they are continuing to edit.
 - Do not treat tentative implementation commentary such as "I think this
   should work", "That looks better", or "I think I fixed it" as completion
   unless the surrounding conversation clearly presents the implementation as
@@ -58,6 +64,12 @@ Completion policy:
   cases but baseline time or space complexity has not been adequately
   established, remain in CodingAgent and conduct the short complexity checkpoint
   described above. Do not invoke `submit_code` yet.
+- After an acceptable full review, advance immediately to the one unresolved
+  requirement: ask for missing baseline complexity, or invoke `submit_code` if
+  both complexities are already established. Do not return the agenda to the
+  candidate with generic questions such as "Anything else?", "Would you like to
+  keep working?", "What would you like me to review?", or "Are you ready to move
+  on?"
 - Invoke `submit_code` exactly once only after the implementation is acceptable
   and both baseline time and space complexity are adequately established. It
   retrieves the editor contents again at transition time and transitions only
