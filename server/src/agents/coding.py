@@ -12,7 +12,7 @@ from agents.conclusion import ConclusionAgent
 from agents.followup import FollowUpAgent
 from agents.prompts.base import build_instructions
 from agents.prompts.coding import build_coding_prompt
-from agents.prompts.questions import REVERSE_LINKED_LIST_QUESTION
+from agents.prompts.questions import MAXIMUM_DEPTH_QUESTION
 from code_submission import (
     CodeSubmission,
     CodeSubmissionStore,
@@ -35,7 +35,7 @@ class CodingAgent(CodingTools, Agent):
     def __init__(
         self,
         *,
-        question: InterviewQuestion = REVERSE_LINKED_LIST_QUESTION,
+        question: InterviewQuestion = MAXIMUM_DEPTH_QUESTION,
         chat_ctx: ChatContext | None = None,
         submission_store: CodeSubmissionStore | None = None,
     ) -> None:

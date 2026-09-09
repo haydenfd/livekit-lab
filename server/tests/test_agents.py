@@ -8,7 +8,7 @@ from agents.discussion import DiscussionAgent
 from agents.intro import IntroAgent
 from agents.prompts import (
     LEFT_PANEL_LINE,
-    REVERSE_LINKED_LIST_QUESTION,
+    MAXIMUM_DEPTH_QUESTION,
     build_intro_opening_instructions,
 )
 from interview_question import (
@@ -109,19 +109,19 @@ async def test_intro_transition_speaks_intro_then_hands_off_to_discussion() -> N
         f"wait:say:{LEFT_PANEL_LINE}",
     ]
     assert session.generated_instructions == [
-        build_intro_opening_instructions(REVERSE_LINKED_LIST_QUESTION)
+        build_intro_opening_instructions(MAXIMUM_DEPTH_QUESTION)
     ]
     assert session.generate_kwargs[0]["tool_choice"] == "none"
     assert session.generate_kwargs[0]["allow_interruptions"] is False
     assert session.spoken == [(LEFT_PANEL_LINE, {"allow_interruptions": False})]
     assert isinstance(discussion, DiscussionAgent)
     assert discussion._question is agent._question
-    assert discussion._question is REVERSE_LINKED_LIST_QUESTION
+    assert discussion._question is MAXIMUM_DEPTH_QUESTION
     assert (
-        build_intro_question_context(REVERSE_LINKED_LIST_QUESTION)
+        build_intro_question_context(MAXIMUM_DEPTH_QUESTION)
         in (session.generated_instructions[0])
     )
-    assert build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION) in (
+    assert build_discussion_question_context(MAXIMUM_DEPTH_QUESTION) in (
         discussion.instructions
     )
 
@@ -138,7 +138,7 @@ async def test_intro_transition_forwards_the_injected_question() -> None:
     assert discussion._question is question
     assert build_intro_question_context(question) in session.generated_instructions[0]
     assert build_discussion_question_context(question) in discussion.instructions
-    assert build_discussion_question_context(REVERSE_LINKED_LIST_QUESTION) not in (
+    assert build_discussion_question_context(MAXIMUM_DEPTH_QUESTION) not in (
         discussion.instructions
     )
 

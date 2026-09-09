@@ -8,7 +8,7 @@ from livekit.agents import AgentServer, ChatContext, JobContext, cli
 from agent_session import create_agent_session
 from agents.coding import CodingAgent
 from agents.intro import IntroAgent
-from agents.prompts import REVERSE_LINKED_LIST_QUESTION
+from agents.prompts import MAXIMUM_DEPTH_QUESTION
 from audio import create_room_options
 from config.env import InterviewStartStage, get_interview_start_stage, load_environment
 from interview_context import InterviewContext
@@ -21,9 +21,8 @@ from services.transcription_service import TranscriptionService
 logger = logging.getLogger("agent")
 
 CODING_APPROACH = (
-    "Use a dummy head and a tail pointer. Compare the current nodes from both "
-    "sorted lists, link the smaller node to the tail, and advance that list. "
-    "When one list is exhausted, attach the other list and return dummy.next."
+    "Use depth-first search recursively. For an empty node, return 0; otherwise "
+    "return 1 plus the larger depth of the left and right subtrees."
 )
 CODING_APPROVAL = "That approach works. Go ahead and start implementing it."
 
@@ -40,7 +39,7 @@ async def start_interview(
     start_stage: InterviewStartStage,
 ) -> None:
     """Start the configured interview stage without changing stage prompts."""
-    question = REVERSE_LINKED_LIST_QUESTION
+    question = MAXIMUM_DEPTH_QUESTION
     if start_stage == "intro":
         await agent_session.start(
             agent=IntroAgent(question=question),
@@ -74,7 +73,7 @@ async def my_agent(ctx: JobContext):
     agent_session = create_agent_session(interview_context)
     TranscriptionService().register(ctx, agent_session)
 
-    question = REVERSE_LINKED_LIST_QUESTION
+    question = MAXIMUM_DEPTH_QUESTION
     logger.debug(
         "Intro question context:\n%s",
         build_intro_question_context(question),

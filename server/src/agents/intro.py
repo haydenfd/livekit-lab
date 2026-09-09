@@ -5,7 +5,7 @@ from livekit.agents import Agent, ChatContext, RunContext, function_tool
 from agents.discussion import DiscussionAgent
 from agents.prompts import (
     INTRO_PROMPT,
-    REVERSE_LINKED_LIST_QUESTION,
+    MAXIMUM_DEPTH_QUESTION,
     build_instructions,
     build_intro_opening_instructions,
 )
@@ -19,7 +19,7 @@ class IntroAgent(Agent):
     def __init__(
         self,
         *,
-        question: InterviewQuestion = REVERSE_LINKED_LIST_QUESTION,
+        question: InterviewQuestion = MAXIMUM_DEPTH_QUESTION,
         chat_ctx: ChatContext | None = None,
     ) -> None:
         super().__init__(

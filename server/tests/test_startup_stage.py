@@ -3,7 +3,7 @@ import pytest
 import agent as agent_module
 from agents.coding import CodingAgent
 from agents.intro import IntroAgent
-from agents.prompts import REVERSE_LINKED_LIST_QUESTION
+from agents.prompts import MAXIMUM_DEPTH_QUESTION
 from config.env import get_interview_start_stage
 
 
@@ -72,7 +72,7 @@ async def test_intro_mode_preserves_existing_startup_without_history() -> None:
     assert len(session.start_calls) == 1
     call = session.start_calls[0]
     assert isinstance(call["agent"], IntroAgent)
-    assert call["agent"]._question is REVERSE_LINKED_LIST_QUESTION
+    assert call["agent"]._question is MAXIMUM_DEPTH_QUESTION
     assert call["agent"].chat_ctx.items == []
     assert call["room"] is room
     assert call["room_options"] is room_options
@@ -118,14 +118,13 @@ async def test_coding_mode_starts_with_seeded_approach_and_approval(
     assert len(session.start_calls) == 1
     coding = session.start_calls[0]["agent"]
     assert isinstance(coding, CodingAgent)
-    assert coding._question is REVERSE_LINKED_LIST_QUESTION
+    assert coding._question is MAXIMUM_DEPTH_QUESTION
     assert [(item.role, item.text_content) for item in coding.chat_ctx.items] == [
         (
             "user",
-            "Use a dummy head and a tail pointer. Compare the current nodes from "
-            "both sorted lists, link the smaller node to the tail, and advance "
-            "that list. When one list is exhausted, attach the other list and "
-            "return dummy.next.",
+            "Use depth-first search recursively. For an empty node, return 0; "
+            "otherwise return 1 plus the larger depth of the left and right "
+            "subtrees.",
         )
     ]
     assert session.start_calls[0]["room"] is room
