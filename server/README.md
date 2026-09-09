@@ -122,7 +122,7 @@ INTERVIEW_START_STAGE=coding
 ```
 
 This server-side, process-wide setting skips the intro and discussion stages. It
-starts the reverse-linked-list coding stage with a known iterative approach and
+starts the maximum-depth-of-binary-tree coding stage with a known recursive DFS approach and
 speaks a deterministic approval before implementation begins. Restart the server
 after changing it. No frontend control is added.
 

@@ -444,6 +444,8 @@ async def test_selector_uses_silent_strict_request_and_rejects_invalid_output(
     assert closed == ["stream", "model"]
     assert request["tools"] == [] and request["tool_choice"] == "none"
     assert request["conn_options"].max_retry == 0
+    assert request["extra_kwargs"]["reasoning"] == {"effort": "low"}
+    assert request["extra_kwargs"]["max_output_tokens"] == 1500
     assert request["extra_kwargs"]["text"]["format"]["strict"] is True
     payload = json.loads(request["chat_ctx"].items[-1].text_content)
     assert payload["accepted_primary_code"] == "original accepted code"

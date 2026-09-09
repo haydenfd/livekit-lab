@@ -9,8 +9,8 @@ from agents.prompts.intro import (
     build_intro_opening_instructions,
 )
 from agents.prompts.questions import (
-    REVERSE_LINKED_LIST_QUESTION,
-    REVERSE_LINKED_LIST_ROW,
+    MAXIMUM_DEPTH_QUESTION,
+    MAXIMUM_DEPTH_ROW,
 )
 
 __all__ = [
@@ -19,8 +19,8 @@ __all__ = [
     "DISCUSSION_PROMPT",
     "INTRO_PROMPT",
     "LEFT_PANEL_LINE",
-    "REVERSE_LINKED_LIST_QUESTION",
-    "REVERSE_LINKED_LIST_ROW",
+    "MAXIMUM_DEPTH_QUESTION",
+    "MAXIMUM_DEPTH_ROW",
     "build_coding_prompt",
     "build_discussion_prompt",
     "build_instructions",
