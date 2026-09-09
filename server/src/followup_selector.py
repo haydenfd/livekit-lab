@@ -12,6 +12,7 @@ from followup import FollowUpPlan, FollowUpState, log_followup
 from interview_question import InterviewQuestion, build_discussion_question_context
 
 SELECTOR_TIMEOUT_SECONDS = 20
+SELECTOR_MAX_OUTPUT_TOKENS = 1500
 
 SELECTOR_INSTRUCTIONS = """\
 You select ONE follow-up assessment for a LeetCode-style interview. You never
@@ -106,7 +107,7 @@ async def _request_plan(
                     }
                 },
                 "reasoning": {"effort": "low"},
-                "max_output_tokens": 1500,
+                "max_output_tokens": SELECTOR_MAX_OUTPUT_TOKENS,
             },
         ) as stream,
     ):
