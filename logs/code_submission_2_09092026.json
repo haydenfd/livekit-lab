@@ -1,0 +1,14 @@
+{
+  "question_slug": "maximum-depth-of-binary-tree",
+  "question_title": "Maximum Depth of Binary Tree",
+  "code": "def maxDepth(self, root: TreeNode) -> int:\n    stack = []\n    if root is not None:\n        stack.append((1, root))\n\n    depth = 0\n    while stack != []:\n        current_depth, root = stack.pop()\n        if root is not None:\n            depth = max(depth, current_depth)\n            stack.append((current_depth + 1, root.left))\n            stack.append((current_depth + 1, root.right))\n    return depth",
+  "submitted_at": "2026-09-09T20:18:12.142178Z",
+  "job_id": "AJ_R7CqTuiJJaQn",
+  "room_name": "voice_assistant_room_7509",
+  "programming_language": "python",
+  "submission_id": "747fc4fa7cb044ceb06cf6c4925d9fcc",
+  "version": 2,
+  "primary_submission_id": "019067a9673a40359a94991029780674",
+  "followup_id": "c74b9dbb3b5b4510b409ac8033bc2258",
+  "outcome": "demonstrated"
+}
