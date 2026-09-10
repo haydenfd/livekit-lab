@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from livekit import rtc
-from livekit.agents import ChatContext, ChatMessage, StopResponse
+from livekit.agents import ChatContext, ChatMessage, StopResponse, ToolError
 from test_agents import make_question
 
 import agents.coding as coding_module
@@ -171,6 +171,41 @@ async def test_get_current_code_maps_rpc_errors_to_an_unavailable_code_error(
 
 
 @pytest.mark.asyncio
+async def test_submit_code_requires_a_prior_current_code_review() -> None:
+    events: list[str] = []
+
+    async def perform_rpc(**_: object) -> str:
+        events.append("rpc")
+        return "candidate code"
+
+    room = SimpleNamespace(
+        local_participant=SimpleNamespace(perform_rpc=perform_rpc),
+        remote_participants={
+            "candidate": SimpleNamespace(
+                identity="candidate",
+                kind=rtc.ParticipantKind.PARTICIPANT_KIND_STANDARD,
+            )
+        },
+    )
+    context = SimpleNamespace(
+        session=SimpleNamespace(room_io=SimpleNamespace(room=room)),
+        userdata=InterviewContext(),
+    )
+    store = RecordingStore(events)
+    agent = CodingAgent(submission_store=store)
+    session = Session()
+    session.events = events
+    attach(agent, session)
+
+    with pytest.raises(ToolError, match="Review the current full code"):
+        await agent.submit_code.__wrapped__(agent, context)
+
+    assert events == []
+    assert store.submissions == []
+    assert context.userdata.followup.primary_submission is None
+
+
+@pytest.mark.asyncio
 async def test_submit_code_persists_fresh_rpc_result_before_acknowledgment_and_handoff(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -283,6 +318,7 @@ async def test_submit_code_retrieval_failure_does_not_store_acknowledge_or_hando
     session = Session()
     session.events = events
     attach(agent, session)
+    agent._reviewed_code = "reviewed code"
     monkeypatch.setattr(
         coding_module,
         "ConclusionAgent",
@@ -326,6 +362,7 @@ async def test_submit_code_storage_failure_is_logged_and_sanitized_without_hando
     session = Session()
     session.events = events
     attach(agent, session)
+    agent._reviewed_code = "reviewed code"
     monkeypatch.setattr(
         coding_module,
         "ConclusionAgent",

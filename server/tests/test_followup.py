@@ -100,6 +100,9 @@ async def test_primary_saves_before_selection_and_repeated_submission_reuses_res
     attach(agent, Session())
     context = SimpleNamespace(userdata=interview)
 
+    # Model-side review has already retrieved this snapshot before the submit
+    # tool is allowed to run.
+    agent._reviewed_code = "accepted code"
     result = await agent.submit_code(context)
     assert isinstance(result, ConclusionAgent if mode == "none" else FollowUpAgent)
     assert await agent.submit_code(context) is result
@@ -107,6 +110,21 @@ async def test_primary_saves_before_selection_and_repeated_submission_reuses_res
     model.assert_awaited_once()
     assert state.selector_completed and state.selector_failure is None
     assert len(list((tmp_path / "logs").glob("code_submission_*.json"))) == 1
+
+
+async def test_followup_demonstrated_requires_a_code_review(saved_primary, monkeypatch):
+    interview, store, primary_path = saved_primary
+    task = make_task(interview, store)
+    monkeypatch.setattr(
+        task_module, "get_current_editor_code", AsyncMock(return_value="extension code")
+    )
+
+    with pytest.raises(ToolError, match="Fetch and review"):
+        await task.finish_exercise(None, "demonstrated", [])
+
+    assert not task.done()
+    assert interview.followup.coding_outcome is None
+    assert len(list(primary_path.parent.glob("code_submission_*.json"))) == 1
 
 
 @pytest.mark.parametrize("failure", [TimeoutError(), RuntimeError("provider failed")])
@@ -121,6 +139,7 @@ async def test_selector_failure_concludes_without_retry_or_losing_primary(
     monkeypatch.setattr(selector, "_request_plan", model)
     agent = CodingAgent(question=make_question(), submission_store=store)
     attach(agent, Session())
+    agent._reviewed_code = "original accepted code"
 
     assert isinstance(
         await agent.submit_code(SimpleNamespace(userdata=interview)), ConclusionAgent
@@ -235,6 +254,7 @@ async def test_transition_speech_overlaps_selection_and_waits_for_both(
     monkeypatch.setattr(session, "say", lambda *args, **kwargs: PendingSpeech())
     agent = CodingAgent(question=make_question(), submission_store=store)
     attach(agent, session)
+    agent._reviewed_code = "original accepted code"
     pending = asyncio.create_task(
         agent.submit_code(SimpleNamespace(userdata=interview))
     )

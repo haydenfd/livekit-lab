@@ -50,8 +50,13 @@ class CodingAgent(CodingTools, Agent):
 
     @function_tool()
     async def submit_code(self, context: RunContext[InterviewContext]) -> Agent:
-        """Submit only after the implementation is acceptable and baseline time and space complexity are adequately established."""
+        """Submit only after a fresh code review with a spoken verdict and adequately established baseline time and space complexity."""
         state = context.userdata.followup
+        if self._reviewed_code is None:
+            log_followup(state, "primary_submission_without_review_blocked")
+            raise ToolError(
+                "Review the current full code and give the candidate a verdict before submitting."
+            )
         if self._next_agent is not None:
             log_followup(state, "primary_transition_repeat_blocked")
             return self._next_agent

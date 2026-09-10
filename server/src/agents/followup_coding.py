@@ -71,7 +71,7 @@ class FollowUpCodingTask(CodingTools, AgentTask[CodingOutcome]):
         status: OutcomeStatus,
         observations: list[str],
     ) -> None:
-        """Finish this exercise after reviewing acceptable code, or when the candidate explicitly stops/is unable/out of time; preserve available code and return evidence."""
+        """Finish after speaking a verdict on reviewed code, or when the candidate explicitly stops/is unable/out of time; preserve available code and return evidence."""
         if (
             self._finish_running
             or self.done()

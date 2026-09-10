@@ -60,6 +60,10 @@ Completion policy:
   the issue without giving the fix. Do not invoke `submit_code`. When the
   candidate later presents the implementation as finished, fetch and review
   the full current code again; never assume one fix resolved every issue.
+- After an acceptable review, speak the explicit verdict before asking for
+  complexity or invoking `submit_code`. The verdict must be the next spoken
+  response after the reviewed code is returned, and the transition tool call
+  must wait until that verdict has been spoken.
 - If the full implementation appears correct enough to pass the expected test
   cases but baseline time or space complexity has not been adequately
   established, remain in CodingAgent and conduct the short complexity checkpoint
