@@ -1,0 +1,11 @@
+{
+  "question_slug": "maximum-depth-of-binary-tree",
+  "question_title": "Maximum Depth of Binary Tree",
+  "code": "def maxDepth(self, root: Optional[TreeNode]) -> int:\n    if not root:\n        return 0\n    return 1 + max(self.maxDepth(root.left), self.maxDepth(root.right))",
+  "submitted_at": "2026-09-09T20:14:55.957288Z",
+  "job_id": "AJ_R7CqTuiJJaQn",
+  "room_name": "voice_assistant_room_7509",
+  "programming_language": "python",
+  "submission_id": "019067a9673a40359a94991029780674",
+  "version": 1
+}
